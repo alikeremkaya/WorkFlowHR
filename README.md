@@ -6,7 +6,7 @@ WorkFlowHR, İnsan Kaynakları süreçlerini yönetmek için **.NET Core 9** kul
 
 ---
 
-## 🛠 Kullanılan Teknolojiler
+##  Kullanılan Teknolojiler
 - **.NET Core 9**
 - **Entity Framework Core** (Planlanıyor)
 - **MSSQL Server** (Planlanıyor)
