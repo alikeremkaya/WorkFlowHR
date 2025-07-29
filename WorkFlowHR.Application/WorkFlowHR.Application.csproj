@@ -7,9 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
-    <Folder Include="Extentions\" />
-    <Folder Include="Services\" />
+    <PackageReference Include="MailKit" Version="4.13.0" />
+    <PackageReference Include="Mapster" Version="7.4.0" />
+    <PackageReference Include="MimeKit" Version="4.13.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WorkFlowHR.Domain\WorkFlowHR.Domain.csproj" />
+    <ProjectReference Include="..\WorkFlowHR.Infrastructure\WorkFlowHR.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
