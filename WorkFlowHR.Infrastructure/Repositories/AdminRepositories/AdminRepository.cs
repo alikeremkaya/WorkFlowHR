@@ -2,6 +2,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using WorkFlowHR.Domain.Entities;
+using WorkFlowHR.Infrastructure.AppContext;
 using WorkFlowHR.Infrastructure.DataAccess.BaseRepository;
 using WorkFlowHR.Infrastructure.Extentions;
 

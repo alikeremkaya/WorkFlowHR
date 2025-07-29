@@ -1,13 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WorkFlowHR.Infrastructure.AppContext;
 using WorkFlowHR.Infrastructure.Repositories.AdminRepositories;
-using WorkFlowHR.Infrastructure.Repositories.ManagerRepositories;
+
 
 namespace WorkFlowHR.Infrastructure.Extentions
 {
