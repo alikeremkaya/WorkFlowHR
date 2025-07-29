@@ -1,39 +1,70 @@
+WorkFlowHR, bir bilişim firmasının insan kaynakları süreçlerini yönetmek için geliştirilmiş, ASP.NET Core 9 tabanlı bir projedir. Modern yazılım prensipleri ve katmanlı mimari yapısı ile geliştirilmiş olan bu proje, güçlü ve genişletilebilir bir altyapıya sahiptir.
 
-# WorkFlowHR
+ Kullanılan Teknolojiler
+ASP.NET Core 9 (MVC)
 
-WorkFlowHR, İnsan Kaynakları süreçlerini yönetmek için **.NET Core 9** kullanılarak oluşturulmuş, **katmanlı mimari (Clean Architecture)** prensiplerine dayalı bir projedir.  
-Şu anda proje **altyapı hazırlığı** aşamasındadır ve üç temel katmandan oluşmaktadır.
+Entity Framework Core (Code First yaklaşımı)
 
----
+MSSQL
 
-##  Kullanılan Teknolojiler
-- **.NET Core 9**
-- **Entity Framework Core** (Planlanıyor)
-- **MSSQL Server** (Planlanıyor)
-- **Clean Architecture Yaklaşımı**
-- **Dependency Injection** (Varsayılan olarak mevcut)
+Repository Pattern (Generic + Özel Repository)
 
----
+Fluent API
 
-##  Proje Yapısı
-```
-WorkFlowHR
-├── WorkFlowHR.Application      # Uygulama katmanı (iş mantığı, servisler)
-├── WorkFlowHR.Domain           # Domain katmanı (entityler, core modeller)
-├── WorkFlowHR.Infrastructure   # Altyapı katmanı (veritabanı, repository)
-└── WorkFlowHR.sln              # Çözüm dosyası
-```
+Dependency Injection
 
----
+DTO ve Service Pattern
 
-##  Katmanlar
-- **Domain:**  
-  Temel iş kuralları ve entity modelleri burada yer alacak.
-  
-- **Application:**  
-  Domain ile etkileşen servisler, business logic, UseCase yapısı bu katmanda olacak.
-  
-- **Infrastructure:**  
-  Veritabanı bağlantısı, Entity Framework Core konfigürasyonu, Repository pattern bu katmanda bulunacak.
+Azure Active Directory (Kurumsal kimlik doğrulama)
 
+Proje Mimarisi
+Proje katmanlı mimari ile tasarlanmıştır:
 
+1. WorkFlowHR.UI
+Kullanıcı arayüzü (MVC Controller’lar, View’lar)
+
+Giriş, yetkilendirme ve dashboard ekranları
+
+2. WorkFlowHR.Application
+Business Logic (İş mantığı)
+
+DTO’lar (AdminDTO, ManagerDTO, MailDTO)
+
+Servisler (AccountService, AdminService, ManagerService)
+
+DependencyInjection.cs ile servislerin IoC Container’a eklenmesi
+
+3. WorkFlowHR.Domain
+Temel entity sınıfları (Admin, Manager, Employee vb.)
+
+4. WorkFlowHR.Infrastructure
+AppDbContext ile EF Core yapılandırması
+
+Fluent API konfigürasyonları (AdminConfiguration, ManagerConfiguration)
+
+Repository Pattern yapısı:
+
+Generic Repository → EFBaseRepository<T>
+
+Repository interface’leri → IAsyncRepository, IAsyncInsertableRepository, vb.
+
+Özel repository’ler → AdminRepository, ManagerRepository
+
+ Kullanılan Tasarım Pattern’leri
+Projede aşağıdaki tasarım desenleri uygulanmıştır:
+
+Pattern	Amaç
+Repository Pattern	Veri erişim katmanını soyutlamak ve tekrar kullanılabilir hale getirmek
+Dependency Injection	Katmanlar arası bağımlılıkları azaltmak, test edilebilirlik sağlamak
+DTO Pattern	Veri transferini optimize etmek
+Service Pattern	İş mantığını yönetmek için servis tabanlı yapı
+Fluent API	EF Core entity yapılandırmalarını düzenli hale getirmek
+
+ Veritabanı Yaklaşımı
+Code First yaklaşımı kullanılmıştır.
+
+DbContext yönetimi AppDbContext ile sağlanır.
+
+Fluent API konfigürasyonu mevcuttur.
+
+SeedData klasöründe örnek veriler (AdminSeed.cs) bulunmaktadır.
