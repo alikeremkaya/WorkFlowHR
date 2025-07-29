@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace WorkFlowHR.Infrastructure.Configurations
 {
-    internal interface IEntityConfiguration
+    public interface IEntityConfiguration
     {
     }
 }

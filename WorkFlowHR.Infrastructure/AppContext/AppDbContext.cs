@@ -10,6 +10,7 @@ using WorkFlowHR.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using WorkFlowHR.Domain.Core.Base;
+using WorkFlowHR.Infrastructure.Configurations;
 
 namespace WorkFlowHR.Infrastructure.AppContext
 {

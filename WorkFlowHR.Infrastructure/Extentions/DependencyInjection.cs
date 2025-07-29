@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using WorkFlowHR.Infrastructure.AppContext;
 using WorkFlowHR.Infrastructure.Repositories.AdminRepositories;
+using WorkFlowHR.Infrastructure.Repositories.ManagerRepositories;
 
 
 namespace WorkFlowHR.Infrastructure.Extentions
@@ -17,8 +18,8 @@ namespace WorkFlowHR.Infrastructure.Extentions
                 options.UseSqlServer(configuration.GetConnectionString("AppConnectionDev"));
             });
             services.AddScoped<IAdminRepository, AdminRepository>();
-            //services.AddScoped<IManagerRepository, ManagerRepository>();
-           
+            services.AddScoped<IManagerRepository, ManagerRepository>();
+
 
             //AdminSeed.SeedAsync(configuration).GetAwaiter().GetResult();
             return services;

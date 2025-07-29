@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkFlowHR.Application", "W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkFlowHR.Infrastructure", "WorkFlowHR.Infrastructure\WorkFlowHR.Infrastructure.csproj", "{DFE7C041-E1B1-4662-9933-83B7430462A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WorkFlowHR.UI", "WorkFlowHR.UI\WorkFlowHR.UI.csproj", "{415B8B23-E2D7-420E-9F7C-ECCABEDEE041}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{DFE7C041-E1B1-4662-9933-83B7430462A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFE7C041-E1B1-4662-9933-83B7430462A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFE7C041-E1B1-4662-9933-83B7430462A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{415B8B23-E2D7-420E-9F7C-ECCABEDEE041}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{415B8B23-E2D7-420E-9F7C-ECCABEDEE041}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{415B8B23-E2D7-420E-9F7C-ECCABEDEE041}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{415B8B23-E2D7-420E-9F7C-ECCABEDEE041}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
