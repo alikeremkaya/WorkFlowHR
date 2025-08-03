@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using WorkFlowHR.UI.Models;
 
 namespace WorkFlowHR.UI.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -15,6 +17,10 @@ namespace WorkFlowHR.UI.Controllers
 
         public IActionResult Index()
         {
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var name = User.Identity?.Name;
+            ViewBag.Email = email;
+            ViewBag.Name = name;
             return View();
         }
 
