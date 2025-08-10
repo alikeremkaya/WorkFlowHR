@@ -1,6 +1,7 @@
 ﻿@{
-    ViewData["Title"] = "Ana Sayfa";
+    ViewData["Title"] = "Employee Dashboard";
 }
-<h2>Hoş geldin, @ViewBag.Name!</h2>
-<p>Email: @ViewBag.Email</p>
+<h2>Employee Alanı</h2>
+<p>Hoş geldin, @User.Identity.Name! Rolün: @ViewBag.Role</p>
+<p>Email: @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
 <a href="/MicrosoftIdentity/Account/SignOut">Çıkış Yap</a>

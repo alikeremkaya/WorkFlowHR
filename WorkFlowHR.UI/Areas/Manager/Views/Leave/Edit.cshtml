@@ -1,0 +1,53 @@
+﻿@model WorkFlowHR.UI.Areas.Manager.Models.LeaveVMs.LeaveEditVM
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Edit</h1>
+
+<h4>LeaveEditVM</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+           
+            <div class="form-group">
+                <label asp-for="StartDate" class="control-label"></label>
+                <input asp-for="StartDate" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndDate" class="control-label"></label>
+                <input asp-for="EndDate" class="form-control" />
+                <span asp-validation-for="EndDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LeaveTypeId" class="col-sm-3 col-form-label">LeaveType</label>
+                <div class="col-sm-9">
+                    <select asp-for="LeaveTypeId" asp-items="@Model.LeaveTypes" class="form-control" required>
+                        <option value="">--- Select ---</option>
+                    </select>
+                    <span asp-validation-for="LeaveTypeId" class="text-danger"></span>
+                </div>
+            <div class="form-group">
+                <label asp-for="LeaveStatus" class="control-label"></label>
+                <input asp-for="LeaveStatus" class="form-control" />
+                <span asp-validation-for="LeaveStatus" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

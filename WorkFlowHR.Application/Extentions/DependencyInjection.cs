@@ -1,13 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using WorkFlowHR.Application.Services.AccountServices;
-using WorkFlowHR.Application.Services.AdminServices;
+using WorkFlowHR.Application.Services.AdvanceServices;
+using WorkFlowHR.Application.Services.AppUserServices;
+using WorkFlowHR.Application.Services.ExpenseServices;
+using WorkFlowHR.Application.Services.LeaveServices;
+using WorkFlowHR.Application.Services.LeaveTypeServices;
 using WorkFlowHR.Application.Services.MailServices;
-using WorkFlowHR.Application.Services.ManagerServices;
 
 namespace WorkFlowHR.Application.Extentions
 {
@@ -15,12 +12,19 @@ namespace WorkFlowHR.Application.Extentions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
-            services.AddScoped<IAdminService, AdminService>();
-
-            services.AddScoped<IAccountService, AccountService>();
-            services.AddScoped<IManagerService, ManagerService>();
+         
             services.AddScoped<IMailService, MailService>();
-       
+
+            services.AddScoped<IAppUserService, AppUserService>();
+
+            services.AddScoped<IAdvanceService, AdvanceService>();
+
+            services.AddScoped<ILeaveService, LeaveService>();
+
+            services.AddScoped<ILeaveTypeService, LeaveTypeService>();
+
+            services.AddScoped<IExpenseService, ExpenseService>();
+
 
 
             return services;

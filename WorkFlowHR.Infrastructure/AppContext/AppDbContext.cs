@@ -1,22 +1,17 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using Microsoft.EntityFrameworkCore;
-using WorkFlowHR.Domain.Entities;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using WorkFlowHR.Domain.Core.Base;
 using WorkFlowHR.Infrastructure.Configurations;
+using WorkFlowHR.Domain.Entities;
+using System.Security.Claims;
 
 namespace WorkFlowHR.Infrastructure.AppContext
 {
-    public class AppDbContext : IdentityDbContext<IdentityUser, IdentityRole, string>
+    public class AppDbContext : DbContext
     {
-
         public const string DevConnectionString = "AppConnectionDev";
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -30,13 +25,13 @@ namespace WorkFlowHR.Infrastructure.AppContext
 
         }
 
-        public virtual DbSet<Admin> Admins { get; set; }
-       
+        public virtual DbSet<AppUser> AppUsers { get; set; }
+        public virtual DbSet<Advance> Advances { get; set; }
+        public virtual DbSet<Leave> Leaves { get; set; }
+        public virtual DbSet<Expense> Expenses { get; set; }
+        public virtual DbSet<LeaveType> LeaveTypes { get; set; }
 
-        public virtual DbSet<Manager> Managers { get; set; }
-       
 
-      
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.ApplyConfigurationsFromAssembly(typeof(IEntityConfiguration).Assembly);
@@ -61,7 +56,7 @@ namespace WorkFlowHR.Infrastructure.AppContext
         private void SetBaseProperties()
         {
             var entries = ChangeTracker.Entries<BaseEntity>();
-            var userId = /*_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ??*/ "Kullanıcı bulunamadı";
+            var userId = _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Kullanıcı bulunamadı";
 
             foreach (var entry in entries)
             {

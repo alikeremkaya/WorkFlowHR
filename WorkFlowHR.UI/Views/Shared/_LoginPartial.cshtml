@@ -1,0 +1,21 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Mvc
+
+<ul class="navbar-nav">
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+        <li class="nav-item">
+            <form id="logoutForm" asp-area="MicrosoftIdentity" asp-page="/Account/SignOut" asp-route-returnUrl="/" method="post" class="form-inline">
+                <button type="submit" class="btn btn-link nav-link">Log out</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-area="MicrosoftIdentity" asp-page="/Account/SignIn" asp-route-returnUrl="/">
+                Sign in
+            </a>
+        </li>
+    }
+</ul>
