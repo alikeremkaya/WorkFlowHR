@@ -1,0 +1,244 @@
+﻿@model IEnumerable<WorkFlowHR.UI.Areas.Employee.Models.AdvanceVMs.AdvanceListVM>
+
+@using WorkFlowHR.Domain.Enums
+
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
+
+<br />
+<br />
+<div class="header">
+    <h1 class="page-title">Advances</h1>
+    <a href="javascript:void(0);" class="btn btn-create" onclick="openCreateModal()">Create</a>
+</div>
+
+<div class="table-responsive">
+    <table id="advancesTable" class="table table-hover display nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th style="background-color:#7978E9; color:white">Advance Date</th>
+                <th style="background-color:#7978E9; color:white">Amount</th>
+                <th style="background-color:#7978E9; color:white">Request Status</th>
+                <th style="background-color:#7978E9; color:white">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(modelItem => item.AdvanceDate)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Amount)</td>
+                    <td>
+                        @if (item.AdvanceStatus == AdvanceStatus.Pending)
+                        {
+                            <span class="badge badge-warning">Pending</span>
+                        }
+                        else if (item.AdvanceStatus == AdvanceStatus.Approved)
+                        {
+                            <span class="badge badge-success">Approved</span>
+                        }
+                        else if (item.AdvanceStatus == AdvanceStatus.Rejected)
+                        {
+                            <span class="badge badge-danger">Rejected</span>
+                        }
+                    </td>
+                    <td>
+                        @if (item.AdvanceStatus == AdvanceStatus.Pending)
+                        {
+                            <div class="dropdown">
+                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton@item.Id" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span class="caret"></span>
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton@item.Id">
+                                    <a class="dropdown-item dropdown-item-update" href="javascript:void(0);" onclick="openUpdateModal('@item.Id')">Update</a>
+                                    <a class="dropdown-item dropdown-item-delete" href="javascript:void(0);" data-id="@item.Id">Delete</a>
+                                </div>
+                            </div>
+                        }
+                        else if (item.AdvanceStatus == AdvanceStatus.Approved || item.AdvanceStatus == AdvanceStatus.Rejected)
+                        {
+                            <button class="btn btn-delete-direct" data-id="@item.Id">Delete</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Create Modal -->
+<div id="createModal" class="modal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal('createModal')">&times;</span>
+        <div id="createModalContent"></div>
+    </div>
+</div>
+
+<!-- Update Modal -->
+<div id="updateModal" class="modal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="modal-close" onclick="closeModal('updateModal')">&times;</span>
+        <div id="updateModalContent"></div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(document).ready(function () {
+            $('#advancesTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    search: "Search:",
+                    paginate: {
+                        next: "Next",
+                        previous: "Previous"
+                    },
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "No entries to show",
+                    emptyTable: "No data available in table"
+                }
+            });
+
+            // Tooltip
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+
+        $('.btn-delete-direct').click(function () {
+            var id = $(this).data('id');
+            swal({
+                title: "Delete Confirmation",
+                text: "Are you sure you want to delete this advance request?",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "No",
+                        visible: true,
+                        className: "btn btn-secondary",
+                        closeModal: true
+                    },
+                    confirm: {
+                        text: "Yes",
+                        className: "btn btn-danger",
+                        closeModal: false
+                    }
+                }
+            }).then((isConfirm) => {
+                if (isConfirm) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Advance", new { area = "Employee" })',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (response) {
+                            swal({
+                                title: "Deleted",
+                                text: "Advance request was deleted.",
+                                icon: "success"
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function () {
+                            swal("Error", "An error occurred while deleting.", "error");
+                        }
+                    });
+                } else {
+                    swal.close();
+                }
+            });
+        });
+
+        $('.dropdown-item-delete').click(function () {
+            var id = $(this).data('id');
+            swal({
+                title: "Delete Confirmation",
+                text: "Are you sure you want to delete this advance request?",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "No",
+                        visible: true,
+                        className: "btn btn-secondary",
+                        closeModal: true
+                    },
+                    confirm: {
+                        text: "Yes",
+                        className: "btn btn-danger",
+                        closeModal: false
+                    }
+                }
+            }).then((isConfirm) => {
+                if (isConfirm) {
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Advance", new { area = "Employee" })',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (response) {
+                            swal({
+                                title: "Deleted",
+                                text: "Advance request was deleted.",
+                                icon: "success"
+                            }).then(() => {
+                                location.reload();
+                            });
+                        },
+                        error: function () {
+                            swal("Error", "An error occurred while deleting.", "error");
+                        }
+                    });
+                } else {
+                    swal.close();
+                }
+            });
+        });
+
+        function openCreateModal() {
+            $.ajax({
+                url: '@Url.Action("Create")',
+                type: 'GET',
+                success: function (result) {
+                    $('#createModalContent').html(result);
+                    $('#createModal').css('display', 'flex');
+                }
+            });
+        }
+
+        function openUpdateModal(id) {
+            $.ajax({
+                url: '@Url.Action("Update")/' + id,
+                type: 'GET',
+                success: function (result) {
+                    $('#updateModalContent').html(result);
+                    $('#updateModal').css('display', 'flex');
+                }
+            });
+        }
+
+        function closeModal(modalId) {
+            $('#' + modalId).css('display', 'none');
+        }
+
+        window.onclick = function (event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+}
+
+<sty
