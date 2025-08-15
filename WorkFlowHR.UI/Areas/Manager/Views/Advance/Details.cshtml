@@ -1,0 +1,169 @@
+﻿@model WorkFlowHR.UI.Areas.Manager.Models.AdvanceVMs.AdvanceDetailsVM
+
+@{
+    ViewData["Title"] = "Advance Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var imgSrc = (Model?.Image != null && Model.Image.Length > 0)
+        ? $"data:image/png;base64,{Convert.ToBase64String(Model.Image)}"
+        : null;
+}
+
+<div class="details-container card">
+    @if (!string.IsNullOrEmpty(imgSrc))
+    {
+            <img src="@imgSrc" class="card-img-top zoomable-image" alt="Advance Image" />
+    }
+    <div class="card-body">
+        <p class="card-text"><strong>Employee:</strong> @Model.AppUserDisplayName</p>
+        <p class="card-text"><strong>Advance Date:</strong> @Model.AdvanceDate.ToString("dd/MM/yyyy")</p>
+        <p class="card-text"><strong>Status:</strong> @Model.AdvanceStatus</p>
+        <p class="card-text"><strong>Amount:</strong> @Model.Amount</p>
+    </div>
+    <div class="card-body">
+        <a asp-area="Manager" asp-controller="Advance" asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<!-- Modal for image zoom -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid" alt="Advance Image">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+        <style>
+            .details-container {
+                width: 24rem;
+                margin: 50px auto;
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 12px;
+                box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
+                text-align: center;
+                position: relative;
+            }
+
+            .details-container .card-text {
+                margin-bottom: 10px;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 10px;
+                color: #0f172a;
+            }
+
+            .details-container img {
+                display: block;
+                margin: 20px auto;
+                max-width: 220px;
+                max-height: 220px;
+                cursor: pointer;
+                transition: transform 0.2s ease-in-out, box-shadow .2s ease;
+                border-radius: 10px;
+                box-shadow: 0 6px 16px rgba(2, 6, 23, 0.08);
+            }
+
+            .details-container img:hover {
+                transform: scale(1.05);
+            }
+
+            .btn-secondary {
+                background-color: #7978E9;
+                border-color: #7978E9;
+                color: #fff;
+                border-radius: 999px;
+                font-weight: 600;
+                letter-spacing: .2px;
+                transition: transform .18s ease, box-shadow .18s ease, background-color 0.3s ease;
+            }
+
+            .btn-secondary:hover {
+                background-color: #5c5ab3;
+                border-color: #5c5ab3;
+                transform: translateY(-1px);
+                box-shadow: 0 10px 20px rgba(2,6,23,.18);
+            }
+
+            .collapse-content {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s ease;
+                text-align: left;
+            }
+
+            .collapse-content.show {
+                max-height: 500px;
+            }
+
+            .btn-toggle {
+                background-color: transparent;
+                border: none;
+                color: #7978E9;
+                font-size: 1.05em;
+                cursor: pointer;
+                font-weight: 700;
+                transition: color 0.2s ease, transform .1s ease;
+                padding: 0;
+            }
+
+            .btn-toggle:hover {
+                color: #5c5ab3;
+                transform: translateY(-1px);
+            }
+        </style>
+}
+
+@section Scripts {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Image -> modal zoom
+                const cardImage = document.querySelector('.card-img-top');
+                if (cardImage) {
+                    cardImage.addEventListener('click', () => {
+                        const modalImage = document.getElementById('modalImage');
+                        modalImage.src = cardImage.src;
+                        const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+                        imageModal.show();
+                    });
+                }
+
+                // Collapsible details
+                const cardBodies = document.querySelectorAll('.details-container .card-body');
+                if (cardBodies.length > 0) {
+                    const infoBody = cardBodies[0]; // ilk body detaylar
+                    const toggleButton = document.createElement('button');
+                    toggleButton.classList.add('btn-toggle');
+                    toggleButton.textContent = 'Show Details';
+
+                    const collapseContent = document.createElement('div');
+                    collapseContent.classList.add('collapse-content');
+
+                    // içeriği collapse içine taşı
+                    const toMove = Array.from(infoBody.childNodes);
+                    toMove.forEach(n => collapseContent.appendChild(n));
+
+                    infoBody.appendChild(toggleButton);
+                    infoBody.appendChild(collapseContent);
+
+                    toggleButton.addEventListener('click', () => {
+                        collapseContent.classList.toggle('show');
+                        toggleButton.textContent = collapseContent.classList.contains('show') ? 'Hide Details' : 'Show Details';
+                    });
+                }
+
+                // Back to list (opsiyonel küçük animasyon yoksa direkt git)
+                const backToListButton = document.querySelector('.btn-secondary[href]');
+                if (backToListButton) {
+                    backToListButton.addEventListener('click', function (e) {
+                        // İstersen direkt yönlendir:
+                        // return; // (animasyon kullanmak istemezsen bu bloğu kaldır)
+                        e.preventDefault();
+                        window.location.href = this.getAttribute('href');
+                    });
+                }
+            });
+        </script>
+}

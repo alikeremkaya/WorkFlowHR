@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WorkFlowHR.Application.DTOs.AppUserDTOs;
 using WorkFlowHR.Domain.Entities;
+using WorkFlowHR.Domain.Utilities.Concretes;
 using WorkFlowHR.Domain.Utilities.Interfaces;
 
 namespace WorkFlowHR.Application.Services.AppUserServices
@@ -46,5 +47,8 @@ namespace WorkFlowHR.Application.Services.AppUserServices
         /// Email’e göre kullanıcıyı DTO olarak döner.
         /// </summary>
         Task<IDataResult<AppUserDTO>> GetByEmailAsync(string email);
+
+        Task<Result> UpdatePhotoAsync(AppUserUpdatePhotoDTO dto);
+
     }
 }

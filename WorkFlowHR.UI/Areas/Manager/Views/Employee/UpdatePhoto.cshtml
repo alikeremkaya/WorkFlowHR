@@ -1,0 +1,170 @@
+﻿@model WorkFlowHR.UI.Areas.Manager.Models.EmployeeVMs.EmployeeUpdatePhotoVM
+@{
+    Layout = null;
+}
+
+<form id="employeePhotoForm" asp-action="UpdatePhoto" method="post" enctype="multipart/form-data" class="neo-form">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+
+    <div class="mb-3 text-center">
+        @if (Model.ExistingImage != null && Model.ExistingImage.Length > 0)
+        {
+            <img src="data:image;base64,@Convert.ToBase64String(Model.ExistingImage)" alt="Current Photo"
+                 style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 6px 16px rgba(2,6,23,.12);" />
+        }
+        else
+        {
+            <div style="width:160px;height:160px;border-radius:12px;display:inline-grid;place-items:center;background:#f1f5f9;color:#64748b;">
+                Fotoğraf yok
+            </div>
+        }
+    </div>
+
+    <div class="mb-3">
+        <label class="neo-label">Employee</label>
+        <div class="form-control neo-input" readonly>@Model.DisplayName (@Model.Email)</div>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="NewImage" class="form-label neo-label">New Image</label>
+        <div class="neo-file-drop" tabindex="0">
+            <input asp-for="NewImage" type="file" accept="image/*" class="neo-file-input" />
+            <div class="neo-file-hint">
+                <div class="neo-file-icon">📎</div>
+                <div>
+                    <div class="neo-file-title">Upload</div>
+                    <div class="neo-file-sub">PNG/JPG, ~5MB</div>
+                </div>
+            </div>
+        </div>
+        <div id="fileName" class="text-muted mt-1 small"></div>
+        <span asp-validation-for="NewImage" class="text-danger small"></span>
+    </div>
+
+    <div class="d-grid">
+        <button type="submit" class="btn neo-btn-gradient">Save</button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function(){
+            const $form = $('#employeePhotoForm');
+            if (!$form.length || $form.data('bound')) return;
+            $form.data('bound', true);
+
+            $form.on('click keydown', '.neo-file-drop', function (e) {
+                if (e.type === 'click' || (e.type === 'keydown' && (e.key === 'Enter' || e.key === ' '))) {
+                    $(this).find('input[type="file"]').trigger('click');
+                    e.preventDefault();
+                }
+            });
+
+            $form.on('change', 'input[type="file"][name="NewImage"]', function () {
+                const file = this.files && this.files[0];
+                $('#fileName').text(file ? file.name : '');
+            });
+
+            $form.on('submit', function(e){
+                e.preventDefault();
+                const fd = new FormData(this);
+
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: 'POST',
+                    data: fd,
+                    processData: false,
+                    contentType: false,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        if (res && res.success) {
+                            $('#updatePhotoModal').modal('hide');
+                            location.reload();
+                            return;
+                        }
+                        location.reload();
+                    },
+                    error: function () {
+                        alert('Fotoğraf güncellenemedi.');
+                    }
+                });
+            });
+        })();
+    </script>
+}
+
+<style>
+    .neo-form {
+        padding: 8px 6px
+    }
+
+    .neo-label {
+        font-weight: 600;
+        color: #0f172a
+    }
+
+    .neo-input {
+        border-radius: 12px;
+        border: 1px solid rgba(2,6,23,.15);
+        background: rgba(255,255,255,.95)
+    }
+
+        .neo-input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15)
+        }
+
+    .neo-file-drop {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        border: 1.5px dashed rgba(2,6,23,.18);
+        background: linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,250,252,.85));
+        border-radius: 14px;
+        padding: 14px 12px;
+        position: relative
+    }
+
+    .neo-file-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer
+    }
+
+    .neo-file-icon {
+        font-size: 20px;
+        line-height: 1
+    }
+
+    .neo-file-title {
+        font-weight: 700;
+        color: #0f172a
+    }
+
+    .neo-file-sub {
+        font-size: 12px;
+        color: #64748b
+    }
+
+    .neo-btn-gradient {
+        background: linear-gradient(90deg,#06b6d4,#22d3ee);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: .2px;
+        padding: 10px 18px;
+        box-shadow: 0 10px 20px rgba(2,6,23,.18)
+    }
+
+        .neo-btn-gradient:hover {
+            filter: brightness(.97)
+        }
+
+    .text-danger.small {
+        font-size: .85rem
+    }
+</style>

@@ -8,5 +8,6 @@ namespace WorkFlowHR.Application.DTOs.AppUserDTOs
         public string DisplayName { get; set; } = null!;
         public string Email { get; set; } = null!;
         public string Role { get; set; } = null!;
+        public byte[]? Image { get; set; }
     }
 }

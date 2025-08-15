@@ -7,16 +7,21 @@ namespace WorkFlowHR.UI.Areas.Employee.Models.AdvanceVMs
     public class AdvanceCreateVM
     {
         public double Amount { get; set; }
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime AdvanceDate { get; set; }
+        public DateTime AdvanceDate { get; set; } = DateTime.Now;
+        public string Description { get; set; } = null!;
+
+        public IFormFile? ImageFile { get; set; }        
+
+        public Guid? ManagerAppUserId { get; set; }     
+        public SelectList? Managers { get; set; }
+
+        public string AppUserDisplayName { get; set; } = null!;
+    
+
         public IFormFile NewImage { get; set; }
         public Roles Roles { get; set; }
         public Guid ManagerId { get; set; }
-        public SelectList Managers { get; set; }
+
         public AdvanceStatus AdvanceStatus { get; set; } = AdvanceStatus.Pending;
-
-         public string ManagerFirstName { get; set; }
-
-        public string ManagerLastName { get; set; }
     }
 }

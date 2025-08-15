@@ -2,7 +2,6 @@
 
 @using WorkFlowHR.Domain.Enums
 
-
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -17,22 +16,25 @@
 
 <br />
 <br />
-<div class="header">
-    <h1 class="page-title">Advances</h1>
-    <a href="javascript:void(0);" class="btn btn-create" onclick="openAdvanceCreateModal()">Add</a>
+
+<!-- Neo header -->
+<div class="neo-page-header">
+    <h1 class="neo-page-title">Advances</h1>
+    <a href="javascript:void(0);" class="btn neo-btn-gradient btn-create" onclick="openAdvanceCreateModal()">Add</a>
 </div>
 
-<div class="table-responsive">
-    <table id="advancesTable" class="table table-hover display nowrap" style="width:100%">
+<!-- Kart içinde tablo -->
+<div class="neo-card table-responsive">
+    <table id="advancesTable" class="table table-hover display nowrap neo-table" style="width:100%">
         <thead>
             <tr>
-                <th style="background-color:#7978E9; color:white">Image</th>
-                <th style="background-color:#7978E9; color:white">EmployeeName</th>
-                <th style="background-color:#7978E9; color:white">Amount</th>
-                <th style="background-color:#7978E9; color:white">Roles</th>
-                <th style="background-color:#7978E9; color:white">AdvanceDate</th>
-                <th style="background-color:#7978E9; color:white">RequestStatus</th>
-                <th style="background-color:#7978E9; color:white">Actions</th>
+                <th>Image</th>
+                <th>EmployeeName</th>
+                <th>Amount</th>
+                <th>Roles</th>
+                <th>AdvanceDate</th>
+                <th>RequestStatus</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -84,8 +86,10 @@
                                 </div>
                             </div>
                         }
-                        else if (item.AdvanceStatus == AdvanceStatus.Approved || item.AdvanceStatus == AdvanceStatus.Rejected) ;
-
+                        else if (item.AdvanceStatus == AdvanceStatus.Approved || item.AdvanceStatus == AdvanceStatus.Rejected)
+                        {
+                            @* Karar verilmiş kayıtlar için aksiyon göstermiyorsanız boş bırakın *@
+                        }
                     </td>
                 </tr>
             }
@@ -122,7 +126,7 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-         $(document).ready(function () {
+        $(document).ready(function () {
             $('#advancesTable').DataTable({
                 "paging": true,
                 "ordering": true,
@@ -192,10 +196,9 @@
 
             // Tablo dropdown butonuna tıklama olayını yönet
             $('.table-dropdown-toggle').click(function (e) {
-                e.stopPropagation(); // Tıklama olayının diğer elementlere yayılmasını durdur
+                e.stopPropagation();
                 var $dropdownMenu = $(this).siblings('.table-dropdown-menu');
 
-                // Tıklanan menüyü aç veya kapat
                 if ($dropdownMenu.is(':visible')) {
                     $dropdownMenu.hide();
                 } else {
@@ -279,61 +282,80 @@
 }
 
 <style>
+    /* Tema uyumlu başlık barı */
+    .neo-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: 18px 22px;
+        margin: 0 20px 18px 20px;
+        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
+        border: 1px solid rgba(2,6,23,.06);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(2,6,23,.06)
+    }
+
+    .neo-page-title {
+        margin: 0;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* Aksiyon butonu */
+    .neo-btn-gradient {
+        background: linear-gradient(90deg,#06b6d4,#22d3ee);
+        color: #fff !important;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: .2px;
+        box-shadow: 0 10px 20px rgba(2,6,23,.18);
+        transition: transform .15s ease, box-shadow .15s ease
+    }
+
+        .neo-btn-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(2,6,23,.20)
+        }
+
+    /* Kart */
+    .neo-card {
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(2,6,23,.10);
+        background: rgba(255,255,255,.9);
+        border: 1px solid rgba(2,6,23,.08);
+        margin: 0 20px;
+        padding: 10px 20px;
+    }
+
+    /* Tablo üst başlık gradient */
+    .neo-table thead th {
+        background: linear-gradient(90deg,#7c3aed,#06b6d4);
+        color: #fff;
+        border: none !important;
+    }
+
+    .neo-table tbody tr:hover {
+        background: rgba(124,58,237,.06)
+    }
+
     body {
         background: #F5F7FF;
     }
 
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        padding: 0 40px;
+    .image-preview {
+        max-width: 100px;
+        max-height: 100px;
+        cursor: pointer;
+        border-radius: 10px;
+        box-shadow: 0 6px 14px rgba(2,6,23,.12);
     }
 
-    .page-title {
-        color: #7978E9;
+    .image-placeholder {
         margin: 0;
-        font-size: 2em;
-    }
-
-    .btn-create {
-        text-decoration: none;
-        background-color: #7978E9;
-        color: white;
-        font-weight: bold;
-        padding: 8px 15px;
-        border-radius: 15px;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-        font-size: 0.9em;
-        width: 150px;
-        text-align: center;
-    }
-
-    .table-responsive {
-        border-radius: 8px;
-        overflow-x: auto; /* sadece yatay taşma olduğunda kaydırma çubuğu ekler */
-        overflow-y: visible; /* dikey taşma olduğunda kaydırma çubuğu ekler */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: white;
-        margin: 0 20px; /* Sağdan ve soldan 30px boşluk bırakır */
-        padding: 0 30px; /* İç kenar boşluğu ekler */
-    }
-
-    .table-hover.display.nowrap {
-        margin-left: auto;
-        margin-right: auto;
-        width: calc(100% - 40px); /* Sağdan ve soldan 20px boşluk bırakır */
-    }
-
-    #advancesTable thead th {
-        background-color: #7978E9;
-        color: white;
-    }
-
-    #advancesTable thead {
-        border-bottom: 2px solid #7978E9;
+        color: #64748b;
+        font-size: .875rem
     }
 
     .modal {
@@ -357,8 +379,9 @@
         border: 1px solid #888;
         width: 80%;
         max-width: 500px;
-        border-radius: 8px;
+        border-radius: 12px;
         position: relative;
+        box-shadow: 0 10px 28px rgba(2,6,23,.18);
     }
 
     .modal-close {
@@ -368,15 +391,12 @@
         color: #000;
         font-size: 30px;
         font-weight: bold;
-        transition: 0.3s;
+        transition: .2s;
         cursor: pointer;
     }
 
-        .modal-close:hover,
-        .modal-close:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
+        .modal-close:hover {
+            color: #999;
         }
 
     .btn {
@@ -409,7 +429,7 @@
         font-size: 0.875em;
         border-radius: 0.25rem;
         padding: 0.5em;
-        color: white.
+        color: white;
     }
 
     .badge-warning {
@@ -430,18 +450,22 @@
 
     .dropdown-item-approve:hover {
         background-color: #28a745;
+        color: #fff;
     }
 
     .dropdown-item-reject:hover {
         background-color: #dc3545;
+        color: #fff;
     }
 
     .dropdown-item-update:hover {
         background-color: #7978E9;
+        color: #fff;
     }
 
     .dropdown-item-delete:hover {
         background-color: #e67350;
+        color: #fff;
     }
 
     .btn-delete-direct {
@@ -449,9 +473,9 @@
         color: white;
         border: none;
         padding: 8px 15px;
-        border-radius: 5px;
+        border-radius: 999px;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        transition: background-color .3s ease;
     }
 
         .btn-delete-direct:hover {
@@ -459,20 +483,13 @@
         }
 
     .dataTables_wrapper .dataTables_length {
-        margin-top: 20px;
-        margin-bottom: 20px;
-        margin-left: 20px;
+        margin: 20px 0 20px 20px;
     }
 
     .dataTables_wrapper .dataTables_filter {
-        float: right; /* Arama kutusunu sağa kaydırır */
-        text-align: right; /* Metin hizalamasını sağa kaydırır */
-        padding-right: 20px; /* Sağdan biraz boşluk bırakır */
-    }
-
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter {
-        margin-bottom: 20px;
+        float: right;
+        text-align: right;
+        padding-right: 20px;
     }
 
         .dataTables_wrapper .dataTables_length label,
@@ -483,16 +500,10 @@
 
         .dataTables_wrapper .dataTables_length select,
         .dataTables_wrapper .dataTables_filter input {
-            color: #7978E9;
-            border: 1px solid #7978E9;
-            border-radius: 5px;
+            color: #0f172a;
+            border: 1px solid rgba(2,6,23,.15);
+            border-radius: 10px;
             padding: 5px;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            height: 25px;
-            margin-top: 5px;
-            margin-left: 10px;
         }
 
         .dataTables_wrapper .dataTables_filter input {
@@ -502,7 +513,6 @@
             font-size: 14px;
             margin-top: 10px;
             margin-right: 10px;
-            border: 1px solid #7978E9;
             background-color: #f5f5f5;
         }
 
@@ -523,18 +533,19 @@
         transform: translate(0, 0);
         z-index: 1000;
         display: none;
-        background-color: white;
+        background-color: #fff;
         min-width: 10rem;
-        padding: 0.5rem 0;
-        margin: 0.125rem 0 0;
+        padding: .5rem 0;
+        margin: .125rem 0 0;
         font-size: 1rem;
         color: #212529;
         text-align: left;
         list-style: none;
         background-clip: padding-box;
         border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: 0.25rem;
+        border-radius: .25rem;
         max-height: 300px;
         overflow: auto;
+        box-shadow: 0 10px 24px rgba(2,6,23,.12);
     }
 </style>

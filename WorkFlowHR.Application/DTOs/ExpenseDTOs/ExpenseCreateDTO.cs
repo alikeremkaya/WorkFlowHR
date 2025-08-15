@@ -18,17 +18,17 @@ namespace WorkFlowHR.Application.DTOs.ExpenseDTOs
         [StringLength(500)]
         public string? Description { get; set; }
         public IFormFile? NewImage { get; set; }
-        public Guid ManagerId { get; set; }
+        public Guid AppUserId { get; set; }
 
-
+        public string AppUserDisplayName { get; set; }
 
         // Onaylayacak yönetici
-        public Guid? ManagerAppUserId { get; set; }
+
 
         public byte[]? Image { get; set; }
 
       
-        public SelectList Managers { get; set; }
+      
 
 
     }

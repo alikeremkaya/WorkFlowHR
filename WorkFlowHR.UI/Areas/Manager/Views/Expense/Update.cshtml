@@ -1,142 +1,82 @@
-﻿@model WorkFlowHR.UI.Areas.Manager.Models.ExpenseVMs.ExpenseEditVM
+﻿@model WorkFlowHR.UI.Areas.Manager.Models.ExpenseVMs.ExpenseUpdateVM
 
 @{
     ViewData["Title"] = "Update Expense";
 }
 
-
-<style>
-    body {
-        background: #eee;
-    }
-
-    .custom-page-title {
-        color: #7978E9;
-        text-align: center;
-        margin-bottom: 30px;
-        font-size: 2em;
-    }
-
-    .container {
-        margin-top: 50px;
-    }
-
-    .form-custom {
-        background-color: white;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .control-label {
-        font-weight: bold;
-        color: #7978E9;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 8px;
-        font-size: 1em;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-
-    .btn {
-        text-decoration: none;
-        font-weight: bold;
-        padding: 10px 20px;
-        border-radius: 25px;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-    }
-
-    .btn-primary {
-        background-color: #7978E9;
-        border: 1px solid #7978E9;
-        color: white;
-    }
-
-        .btn-primary:hover {
-            background-color: #4b49ac;
-            border: 1px solid #4b49ac;
-        }
-
-    .btn-secondary {
-        background-color: #6C757D;
-        border: 1px solid #6C757D;
-        color: white;
-    }
-
-        .btn-secondary:hover {
-            background-color: #5A6369;
-            border: 1px solid #5A6369;
-        }
-
-    .text-danger {
-        font-size: 0.875em;
-    }
-</style>
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h1 class="custom-page-title">Update Expense</h1>
-            <form id="expenseUpdateForm" asp-action="Update" method="post" enctype="multipart/form-data" class="form-custom">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                <div class="form-group">
-                    <label asp-for="NewImage" class="control-label">New Image</label>
-                    <input asp-for="NewImage" type="file" class="form-control" />
-                    <span asp-validation-for="NewImage" class="text-danger"></span>
-                    @if (Model.ExistingImage != null)
-                    {
-                        <div class="mt-2">
-                            <img src="data:image/png;base64,@(Convert.ToBase64String(Model.ExistingImage))" class="img-thumbnail" />
-                        </div>
-                    }
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Amount" class="control-label">Amount</label>
-                    <input asp-for="Amount" class="form-control" required />
-                    <span asp-validation-for="Amount" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="ExpenseDate" class="control-label">Expense Date</label>
-                    <input id="ExpenseDate" asp-for="ExpenseDate" type="date" class="form-control" required />
-                    <span asp-validation-for="ExpenseDate" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="Description" class="control-label">Description</label>
-                    <input asp-for="Description" class="form-control" required />
-                    <span asp-validation-for="Description" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="ManagerId" class="control-label">Employee</label>
-                    <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control" required>
-                        <option value="">--- Select Employee ---</option>
-                    </select>
-                    <span asp-validation-for="ManagerId" class="text-danger"></span>
-                </div>
-
-                <div class="form-group text-center">
-                    <input type="submit" value="Save" class="btn btn-primary" />
-                </div>
-            </form>
-        </div>
+<div class="neo-form-card">
+    <div class="neo-form-header">
+        <div class="neo-dot"></div>
+        <div class="neo-dot"></div>
+        <div class="neo-dot"></div>
+        <span>Update Expense</span>
     </div>
-</div>
 
+    <form id="expenseUpdateForm" asp-action="Update" method="post" enctype="multipart/form-data" class="neo-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-<div class="container mt-3 text-center">
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        @* Ensure Id is posted *@
+        <input asp-for="Id" type="hidden" />
+
+        <div class="mb-3">
+            <label class="form-label neo-label d-block">Receipt Image</label>
+            <label class="neo-file-drop">
+                <input asp-for="NewImage" type="file" class="neo-file-input" />
+                <div class="neo-file-hint">
+                    <div class="neo-file-icon">📎</div>
+                    <div>
+                        <div class="neo-file-title">Click to upload</div>
+                        <div class="neo-file-sub">PNG/JPG, max ~5MB</div>
+                    </div>
+                </div>
+            </label>
+            <span asp-validation-for="NewImage" class="text-danger small"></span>
+
+            <div id="fileName" class="text-muted mt-1 small"></div>
+
+            @if (Model.ExistingImage != null)
+            {
+                <div class="mt-2">
+                    <img src="data:image/png;base64,@(Convert.ToBase64String(Model.ExistingImage))"
+                         class="img-thumbnail neo-thumb" alt="Existing receipt" />
+                </div>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Amount" class="form-label neo-label">Amount</label>
+            <input asp-for="Amount" class="form-control neo-input" required />
+            <span asp-validation-for="Amount" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="ExpenseDate" class="form-label neo-label">Expense Date</label>
+            <input asp-for="ExpenseDate" id="ExpenseDate" type="date" class="form-control neo-input" required />
+            <span asp-validation-for="ExpenseDate" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Description" class="form-label neo-label">Description</label>
+            <input asp-for="Description" class="form-control neo-input" required />
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="ManagerId" class="form-label neo-label">Employee</label>
+            <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control neo-input" required>
+                <option value="">--- Select Employee ---</option>
+            </select>
+            <span asp-validation-for="ManagerId" class="text-danger small"></span>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn neo-btn-gradient">Save</button>
+        </div>
+    </form>
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="btn neo-btn-secondary">Back to List</a>
+    </div>
 </div>
 
 @section Scripts {
@@ -147,60 +87,212 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation/1.19.3/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
     <script>
-        $(document).ready(function () {
-            $('#expenseUpdateForm').validate({
-                errorClass: 'text-danger',
-                validClass: 'text-success',
-                errorPlacement: function (error, element) {
-                    error.insertAfter(element);
-                },
-                messages: {
-                    NewImage: "Lütfen bu alanı doldurun.",
-                    Amount: "Lütfen bu alanı doldurun.",
-                    ExpenceDate: "Lütfen bu alanı doldurun.",
-                    Description: "Lütfen bu alanı doldurun.",
-                    ManagerId: "Lütfen bu alanı doldurun."
-                },
-                submitHandler: function (form) {
-                    $.ajax({
-                        type: $(form).attr('method'),
-                        url: $(form).attr('action'),
-                        data: new FormData(form),
-                        contentType: false,
-                        processData: false,
-                        success: function (response) {
-                            if (response.success) {
-                                window.location.href = response.redirectUrl;
+        // bind once (safe for partial loaded into modal)
+        (function bindExpenseUpdate() {
+            if (window.__expenseUpdateBound) return; window.__expenseUpdateBound = true;
+
+            const $form = $('#expenseUpdateForm');
+            if ($form.length) {
+                $form.validate({
+                    errorClass: 'text-danger',
+                    validClass: 'text-success',
+                    errorPlacement: function (error, element) { error.insertAfter(element); },
+                    messages: {
+                        NewImage: "Lütfen bu alanı doldurun.",
+                        Amount: "Lütfen bu alanı doldurun.",
+                        ExpenseDate: "Lütfen bu alanı doldurun.",
+                        Description: "Lütfen bu alanı doldurun.",
+                        ManagerId: "Lütfen bu alanı doldurun."
+                    },
+                    submitHandler: function (form) {
+                        // client-side date guard
+                        const el = document.getElementById('ExpenseDate');
+                        if (el) {
+                            const chosen = new Date(el.value);
+                            const now = new Date();
+                            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                            if (chosen < today) {
+                                el.setCustomValidity('Start date must be later than the current date.');
+                                el.reportValidity();
+                                return false;
                             } else {
-                                $.each(response.errors, function (key, value) {
-                                    var errorElement = $('[name="' + key + '"]').next('.text-danger');
-                                    errorElement.text(value);
-                                });
+                                el.setCustomValidity('');
                             }
                         }
-                    });
-                    return false; 
+
+                        $.ajax({
+                            type: $(form).attr('method'),
+                            url: $(form).attr('action'),
+                            data: new FormData(form),
+                            contentType: false,
+                            processData: false,
+                            success: function (response) {
+                                if (response && response.success) {
+                                    window.location.href = response.redirectUrl;
+                                } else if (response && response.errors) {
+                                    $.each(response.errors, function (key, value) {
+                                        var $err = $('[name="' + key + '"]').next('.text-danger');
+                                        $err.text(value);
+                                    });
+                                } else {
+                                    // fallback if controller returns a full view
+                                    location.reload();
+                                }
+                            },
+                            error: function () {
+                                alert("An unexpected error occurred.");
+                            }
+                        });
+                        return false;
+                    }
+                });
+            }
+
+            // UX: drop area opens file picker
+            $(document).on('click', '.neo-file-drop', function () {
+                $(this).find('input[type="file"]').trigger('click');
             });
-        });
+
+            // show selected filename
+            $(document).on('change', 'input[type="file"][name="NewImage"]', function () {
+                const file = this.files && this.files[0];
+                $('#fileName').text(file ? file.name : '');
+            });
+
+            // clear custom validity on change
+            $(document).on('change', '#ExpenseDate', function () {
+                this.setCustomValidity('');
+            });
+        })();
     </script>
 }
-<script>
-    document.querySelector('form').addEventListener('submit', function (event) {
-        var advanceDate = new Date(document.getElementById('ExpenseDate').value);
-        var now = new Date();
 
-        // Geçmiş tarih girilmesini engelle
-        if (advanceDate < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
-            var advanceDateInput = document.getElementById('ExpenseDate');
-            advanceDateInput.setCustomValidity('Start date must be later than the current date.');
-            advanceDateInput.reportValidity();
-            event.preventDefault(); 
-            return;
+<style>
+    .neo-form-card {
+        background: rgba(255,255,255,.9);
+        border: 1px solid rgba(2,6,23,.08);
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(2,6,23,.12);
+        padding: 18px 16px 22px 16px;
+    }
+
+    .neo-form-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
+        border: 1px solid rgba(2,6,23,.06);
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .neo-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124,58,237,.15) inset;
+    }
+
+    .neo-label {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .neo-input {
+        border-radius: 12px;
+        border: 1px solid rgba(2,6,23,.15);
+        background: rgba(255,255,255,.9);
+        transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
+    }
+
+        .neo-input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15);
+            transform: translateY(-1px);
         }
-    });
 
-    document.getElementById('ExpenseDate').addEventListener('change', function () {
-        var advanceDateInput = document.getElementById('ExpenseDate');
-        advanceDateInput.setCustomValidity('');
-    });
-</script>
+    .neo-file-drop {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        border: 1.5px dashed rgba(2,6,23,.18);
+        background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,250,252,.85));
+        border-radius: 14px;
+        padding: 14px 12px;
+        position: relative;
+        transition: border-color .2s ease, box-shadow .2s ease, transform .08s ease;
+    }
+
+        .neo-file-drop:hover {
+            border-color: #06b6d4;
+            transform: translateY(-1px);
+        }
+
+    .neo-file-input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .neo-file-icon {
+        font-size: 20px;
+        line-height: 1;
+    }
+
+    .neo-file-title {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .neo-file-sub {
+        font-size: 12px;
+        color: #64748b;
+    }
+
+    .neo-thumb {
+        max-height: 140px;
+        border-radius: 12px;
+    }
+
+    .neo-btn-gradient {
+        background: linear-gradient(90deg,#06b6d4,#22d3ee);
+        color: #fff !important;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: .2px;
+        padding: 10px 18px;
+        box-shadow: 0 10px 20px rgba(2,6,23,.18);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+        .neo-btn-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(2,6,23,.20);
+        }
+
+    .neo-btn-secondary {
+        background: rgba(2,6,23,.06);
+        color: #0f172a;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        padding: 8px 16px;
+        transition: background .15s ease, transform .1s ease;
+    }
+
+        .neo-btn-secondary:hover {
+            background: rgba(2,6,23,.10);
+            transform: translateY(-1px);
+        }
+
+    .text-danger.small {
+        font-size: .85rem;
+    }
+</style>

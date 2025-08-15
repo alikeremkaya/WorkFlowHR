@@ -18,8 +18,11 @@ namespace WorkFlowHR.Application.DTOs.AdvanceDTOs
         public byte[] Image { get; set; }
         public Roles Roles { get; set; }
         public Guid? ManagerAppUserId { get; set; }
+        public Guid? AppUserId { get; set; }
         public AdvanceStatus AdvanceStatus { get; set; } = AdvanceStatus.Pending;
         public string AppUserDisplayName { get; set; } = null!;
+
+        
 
 
 

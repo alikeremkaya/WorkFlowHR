@@ -1,5 +1,6 @@
 ﻿
 
+using System.ComponentModel.DataAnnotations;
 using WorkFlowHR.Domain.Enums;
 
 namespace WorkFlowHR.Application.DTOs.ExpenseDTOs
@@ -8,23 +9,17 @@ namespace WorkFlowHR.Application.DTOs.ExpenseDTOs
     {
         public Guid Id { get; set; }
         public double Amount { get; set; }
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime ExpenseDate { get; set; }
-        public string? Description { get; set; }
-
-        public Guid AppUserId { get; set; }
-        public string AppUserName { get; set; } = "";
-
-        public DateTime CreatedDate { get; set; }
-
-        public Guid? UpdatedById { get; set; }
-        public string? UpdatedByName { get; set; }
-        public DateTime? UpdatedDate { get; set; }
-
-        public Guid? ManagerAppUserId { get; set; }
-        public string? ManagerName { get; set; }
-
-        public Status Status { get; set; }
 
         public byte[]? Image { get; set; }
+
+        public string Description { get; set; }
+
+        public Guid AppUserId { get; set; }
+        public string AppUserDisplayName { get; set; }
+
+
+        public Roles Roles { get; set; }
     }
 }

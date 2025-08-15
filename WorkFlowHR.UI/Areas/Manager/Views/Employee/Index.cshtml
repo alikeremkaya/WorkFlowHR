@@ -1,0 +1,375 @@
+﻿@model IEnumerable<WorkFlowHR.UI.Areas.Manager.Models.EmployeeVMs.EmployeeListVM>
+@using System
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Employees";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+<div class="container-fluid mt-4 px-0">
+    <div class="edge-left">
+        <div class="emp-grid">
+            @foreach (var item in Model)
+            {
+                <article class="emp-card">
+                    <div class="emp-actions dropdown">
+                        <button class="btn-kebab" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">⋮</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="@Url.Action("Index", "Summary", new { employeeId = item.Id })">Details</a>
+                            <button class="dropdown-item" data-toggle="modal" data-target="#updatePhotoModal" data-id="@item.Id">Update Photo</button>
+                            <button class="dropdown-item dropdown-item-delete" data-id="@item.Id">Delete</button>
+                        </div>
+                    </div>
+
+                    <div class="emp-photo-wrap">
+                        @if (item.Image == null || item.Image.Length == 0)
+                        {
+                            <div class="emp-photo--placeholder">
+                                <span>@(string.IsNullOrWhiteSpace(item.AppUserDisplayName) ? "NO IMG" : (item.AppUserDisplayName.Trim()[0].ToString().ToUpper()))</span>
+                            </div>
+                            <button class="btn-mini-edit" data-toggle="modal" data-target="#updatePhotoModal" data-id="@item.Id">Upload</button>
+                        }
+                        else
+                        {
+                            <img class="emp-photo" src="@($"data:image/png;base64,{Convert.ToBase64String(item.Image)}")" alt="photo" />
+                            <button class="btn-mini-edit" data-toggle="modal" data-target="#updatePhotoModal" data-id="@item.Id">Change</button>
+                        }
+                    </div>
+
+                    <div class="emp-meta">
+                        <div class="emp-name" title="@item.AppUserDisplayName">@item.AppUserDisplayName</div>
+                        <div class="emp-email" title="@item.Email">@item.Email</div>
+                        <div class="emp-tags">
+                            <span class="role-chip">@item.Roles</span>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Create Modal (AJAX ile içerik) -->
+<div class="modal fade" id="createEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="createEmployeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content neo-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createEmployeeModalLabel">Create Employee</h5>
+                <button type="button" class="close neo-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="createModalContent" class="p-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Photo Modal (AJAX ile içerik) -->
+<div class="modal fade" id="updatePhotoModal" tabindex="-1" role="dialog" aria-labelledby="updatePhotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content neo-modal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updatePhotoModalLabel">Update Photo</h5>
+                <button type="button" class="close neo-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="updatePhotoContent" class="p-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        $(function () {
+            // Create
+            $('#createEmployeeModal').on('show.bs.modal', function () {
+                const url = '@Url.Action("Create", "Employee")';
+                $('#createModalContent').load(url);
+            });
+
+            // Update photo
+            $('#updatePhotoModal').on('show.bs.modal', function (e) {
+                const id = $(e.relatedTarget).data('id');
+                const url = '@Url.Action("UpdatePhoto", "Employee")/' + id;
+                $('#updatePhotoContent').load(url);
+            });
+
+            // Delete
+            $(document).on('click', '.dropdown-item-delete', function () {
+                const id = $(this).data('id');
+                swal({
+                    title: "Delete?",
+                    text: "This action cannot be undone.",
+                    icon: "warning",
+                    buttons: {
+                        cancel: { text: "No", visible: true, className: "btn btn-secondary", closeModal: true },
+                        confirm: { text: "Yes", className: "btn btn-danger", closeModal: false }
+                    }
+                }).then((isConfirm) => {
+                    if (isConfirm) {
+                        $.ajax({
+                            url: '@Url.Action("Delete", "Employee", new { area = "Manager" })',
+                            type: 'POST',
+                            data: { id: id },
+                            success: function () {
+                                swal({ title: "Deleted", text: "Record removed.", icon: "success" })
+                                    .then(() => location.reload());
+                            },
+                            error: function () {
+                                swal("Error", "An error occurred while deleting.", "error");
+                            }
+                        });
+                    } else {
+                        swal.close();
+                    }
+                });
+            });
+
+            // Modal dışına çift tıklama ile kapatma
+            $(document).on('dblclick', '.modal', function (e) {
+                if ($(e.target).is('.modal')) $(this).modal('hide');
+            });
+            $(document).on('dblclick', '.modal-backdrop', function () {
+                $('.modal.show').modal('hide');
+            });
+        });
+    </script>
+}
+
+<style>
+    :root {
+        --ink-1: #0f172a;
+        --ink-2: #334155;
+        --muted: #64748b;
+        --bg-1: #f5f7ff;
+        --card: #ffffff;
+        --brand-a: #7c3aed;
+        --brand-b: #06b6d4;
+        --brand-c: #22d3ee;
+        --ring: rgba(124,58,237,.18);
+    }
+
+    body {
+        background: var(--bg-1);
+    }
+
+    /* main-panel padding’ini telafi ederek kartları soldan başlat */
+    .edge-left {
+        margin-left: -16px;
+        padding-left: 0;
+    }
+    @@media (min-width: 992px) {
+        .edge-left
+
+    {
+        margin-left: -28px;
+    }
+
+    }
+
+    /* GRID */
+    .emp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
+        gap: 1.25rem;
+        justify-content: start; /* soldan başlasın */
+        align-content: start;
+        grid-auto-flow: row dense;
+        padding-left: 16px; /* görsel nefes alanı */
+        padding-right: 16px;
+    }
+    @@media (min-width: 992px) {
+        .emp-grid
+
+    {
+        padding-left: 28px;
+        padding-right: 28px;
+    }
+
+    }
+
+    .emp-card {
+        position: relative;
+        background: var(--card);
+        border: 1px solid rgba(2,6,23,.06);
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(2,6,23,.08);
+        overflow: hidden;
+        transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+        .emp-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 36px rgba(2,6,23,.14);
+        }
+
+    .emp-actions {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+    }
+
+    .btn-kebab {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(2,6,23,.7);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        padding: 0;
+        font-size: 18px;
+        transition: filter .15s ease;
+    }
+
+        .btn-kebab:hover {
+            filter: brightness(1.05);
+        }
+
+    .dropdown-menu {
+        font-size: .9rem;
+        border-radius: 12px;
+        border: 1px solid rgba(2,6,23,.08);
+    }
+
+    /* Foto alanı */
+    .emp-photo-wrap {
+        display: grid;
+        place-items: center;
+        aspect-ratio: 3 / 4;
+        overflow: hidden;
+        background: linear-gradient(90deg, rgba(124,58,237,.08), rgba(6,182,212,.08));
+        padding: 6px;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .emp-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* kırpmadan sığdır (tamamı görünsün) */
+        object-position: center;
+        display: block;
+        image-rendering: auto;
+        border-radius: 10px;
+    }
+
+    .emp-photo--placeholder {
+        width: 100%;
+        aspect-ratio: 3 / 4;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(600px 200px at -20% -10%, rgba(124,58,237,.18), transparent 60%), radial-gradient(600px 200px at 120% 10%, rgba(6,182,212,.18), transparent 60%), linear-gradient(180deg, #f8fafc, #eef2ff);
+        color: #1f2937;
+        font-weight: 800;
+        font-size: 2rem;
+        border-radius: 12px;
+    }
+    @@supports not (aspect-ratio: 3/4) {
+        .emp-photo-wrap, .emp-photo--placeholder
+
+    {
+        height: 320px;
+    }
+
+    }
+    @@media (min-width:1200px) {
+        .emp-photo-wrap, .emp-photo--placeholder
+
+    {
+        aspect-ratio: 2 / 3;
+    }
+
+    }
+    @@supports not (aspect-ratio: 2/3) {
+    @@media (min-width:1200px)
+
+    {
+        .emp-photo-wrap, .emp-photo--placeholder
+
+    {
+        height: 360px;
+    }
+
+    }
+    }
+
+    .btn-mini-edit {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        z-index: 2;
+        background: linear-gradient(90deg, var(--brand-b), var(--brand-c));
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: .8rem;
+        font-weight: 700;
+        box-shadow: 0 8px 18px rgba(2,6,23,.18);
+    }
+
+        .btn-mini-edit:hover {
+            filter: brightness(.95);
+        }
+
+    .emp-meta {
+        padding: 12px 14px 14px;
+    }
+
+    .emp-name {
+        font-weight: 800;
+        color: var(--ink-1);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .emp-email {
+        color: var(--muted);
+        font-size: .9rem;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: .6rem; /* mail ile rol arasında net boşluk */
+    }
+
+    .emp-tags {
+        margin-top: .1rem;
+    }
+    /* ek boşluğu mail tarafında verdik */
+
+    .role-chip {
+        background: #eef2ff;
+        color: #3730a3;
+        border-radius: 999px;
+        padding: .25rem .6rem;
+        font-weight: 700;
+        font-size: .75rem;
+    }
+
+    .neo-modal {
+        border-radius: 14px;
+        border: 1px solid rgba(2,6,23,.08);
+        box-shadow: 0 12px 30px rgba(2,6,23,.12);
+    }
+
+    .neo-close {
+        outline: none;
+    }
+</style>

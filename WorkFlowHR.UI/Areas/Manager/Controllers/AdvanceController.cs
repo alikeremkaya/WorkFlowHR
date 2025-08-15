@@ -65,11 +65,11 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
             var dto = vm.Adapt<AdvanceCreateDTO>();
 
-            // ImageFile -> byte[]
-            if (vm.ImageFile != null)
+            // IFormFile -> byte[]
+            if (vm.NewImage != null && vm.NewImage.Length > 0)
             {
                 using var ms = new MemoryStream();
-                await vm.ImageFile.CopyToAsync(ms);
+                await vm.NewImage.CopyToAsync(ms);
                 dto.Image = ms.ToArray();
             }
 
@@ -78,7 +78,7 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             var res = await _advanceService.CreateAsync(dto);
             if (!res.IsSuccess)
             {
-                ModelState.AddModelError("", res.Messages);
+                ModelState.AddModelError(string.Empty, res.Messages);
                 vm.Managers = await GetManagers(vm.ManagerAppUserId);
                 return View(vm);
             }
@@ -86,8 +86,23 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             TempData["Success"] = "Advance created.";
             return RedirectToAction(nameof(Index));
         }
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _advanceService.DeleteAsync(id);
+                if (!result.IsSuccess)
+                {
+                    await Console.Out.WriteLineAsync(result.Messages);
+                    return RedirectToAction("Index");
+                }
 
-        
+                await Console.Out.WriteLineAsync(result.Messages);
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("Index", "Home");
+        }
+
         [HttpGet]
         public async Task<IActionResult> Update(Guid id)
         {
@@ -95,12 +110,12 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             if (!res.IsSuccess || res.Data == null)
             {
                 TempData["Error"] = res.Messages;
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             var vm = res.Data.Adapt<AdvanceEditVM>();
             vm.ExistingImage = res.Data.Image;
-            vm.Managers = await GetManagers(vm.ManagerAppUserId);
+            vm.Managers = await GetManagers(vm.ManagerId);
             return View(vm);
         }
 
@@ -109,31 +124,31 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
         public async Task<IActionResult> Update(AdvanceEditVM vm)
         {
             if (!ModelState.IsValid)
-            {
-                vm.Managers = await GetManagers(vm.ManagerAppUserId);
                 return View(vm);
-            }
 
             var dto = vm.Adapt<AdvanceUpdateDTO>();
 
-            if (vm.NewImage != null)
+            // Yeni görsel varsa byte[]'e çevir
+            if (vm.NewImage != null && vm.NewImage.Length > 0)
             {
                 using var ms = new MemoryStream();
                 await vm.NewImage.CopyToAsync(ms);
                 dto.Image = ms.ToArray();
             }
-            else
-            {
-                dto.Image = vm.ExistingImage; // yeni yüklenmediyse eskisini koru
-            }
+
+            // AppUserId boş gelirse mevcut kullanıcının Id'sini koy
+            if (dto.AppUserId == Guid.Empty)
+                dto.AppUserId = await ResolveCurrentAppUserIdAsync();
 
             var res = await _advanceService.UpdateAsync(dto);
             if (!res.IsSuccess)
             {
-                ModelState.AddModelError("", res.Messages);
-                vm.Managers = await GetManagers(vm.ManagerAppUserId);
+                ModelState.AddModelError(string.Empty, res.Messages);
                 return View(vm);
             }
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
 
             TempData["Success"] = "Advance updated.";
             return RedirectToAction(nameof(Index));
@@ -168,7 +183,18 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             await Console.Out.WriteLineAsync(result.Messages);
             return RedirectToAction("Index");
         }
+        public async Task<IActionResult> Details(Guid id)
+        {
+            var result = await _advanceService.GetByIdAsync(id);
+            if (!result.IsSuccess)
+            {
+                await Console.Out.WriteLineAsync(result.Messages);
+                return RedirectToAction("Index");
+            }
 
+            var advanceDetailsVM = result.Data.Adapt<AdvanceDetailsVM>();
+            return View(advanceDetailsVM);
+        }
 
         private async Task<Guid> ResolveCurrentAppUserIdAsync()
         {

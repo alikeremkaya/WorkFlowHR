@@ -10,7 +10,7 @@ namespace WorkFlowHR.Domain.Entities
         public string Description { get; set; } = null!;
 
         // İlgili kullanıcı (AppUser) ilişkisi
-        public Guid? ManagerAppUserId { get; set; }
-        public virtual AppUser? ManagerAppUser { get; set; }
+        public Guid AppUserId { get; set; }
+        public virtual AppUser AppUser { get; set; } = null!;
     }
 }

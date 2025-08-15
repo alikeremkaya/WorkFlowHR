@@ -113,6 +113,9 @@ namespace WorkFlowHR.Infrastructure.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<byte[]>("Image")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -152,6 +155,9 @@ namespace WorkFlowHR.Infrastructure.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
+                    b.Property<Guid>("AppUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CreatedBy")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -175,9 +181,6 @@ namespace WorkFlowHR.Infrastructure.Migrations
                     b.Property<byte[]>("Image")
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<Guid?>("ManagerAppUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -189,7 +192,7 @@ namespace WorkFlowHR.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagerAppUserId");
+                    b.HasIndex("AppUserId");
 
                     b.ToTable("Expenses");
                 });
@@ -300,11 +303,13 @@ namespace WorkFlowHR.Infrastructure.Migrations
 
             modelBuilder.Entity("WorkFlowHR.Domain.Entities.Expense", b =>
                 {
-                    b.HasOne("WorkFlowHR.Domain.Entities.AppUser", "ManagerAppUser")
+                    b.HasOne("WorkFlowHR.Domain.Entities.AppUser", "AppUser")
                         .WithMany("Expenses")
-                        .HasForeignKey("ManagerAppUserId");
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("ManagerAppUser");
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("WorkFlowHR.Domain.Entities.Leave", b =>

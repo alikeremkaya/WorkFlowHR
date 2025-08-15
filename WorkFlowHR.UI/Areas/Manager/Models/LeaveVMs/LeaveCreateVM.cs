@@ -6,10 +6,10 @@ namespace WorkFlowHR.UI.Areas.Manager.Models.LeaveVMs
 {
     public class LeaveCreateVM
     {
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime StartDate { get; set; }
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime EndDate { get; set; }
+       
+        public DateTime StartDate { get; set; } = DateTime.Now;
+       
+        public DateTime EndDate { get; set; } = DateTime.Now;
         public Roles Roles { get; set; }
 
         public Guid LeaveTypeId { get; set; }

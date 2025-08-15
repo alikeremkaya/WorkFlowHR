@@ -11,9 +11,10 @@ namespace WorkFlowHR.UI.Areas.Employee.Models.AdvanceVMs
         public DateTime AdvanceDate { get; set; }
         public byte[] Image { get; set; }
         public Roles Roles { get; set; }
+        public Guid? ManagerAppUserId { get; set; }
         public AdvanceStatus AdvanceStatus { get; set; } = AdvanceStatus.Pending;
-        public string ManagerFirstName { get; set; }
-        public string ManagerLastName { get; set; }
-       
+
+        public string AppUserDisplayName { get; set; } = null!;
+     
     }
 }

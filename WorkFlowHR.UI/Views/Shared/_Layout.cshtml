@@ -1,61 +1,339 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>HR Management System</title>
-    <!-- plugins:css -->
+
     <link rel="stylesheet" href="~/vendors/feather/feather.css">
     <link rel="stylesheet" href="~/vendors/ti-icons/css/themify-icons.css">
     <link rel="stylesheet" href="~/vendors/css/vendor.bundle.base.css">
-    <!-- endinject -->
-    <!-- Plugin css for this page -->
     <link rel="stylesheet" href="~/vendors/datatables.net-bs4/dataTables.bootstrap4.css">
-    <link rel="stylesheet" href="~/vendors/ti-icons/css/themify-icons.css">
-    <link rel="stylesheet" type="~/text/css" href="js/select.dataTables.min.css">
-    <!-- End plugin css for this page -->
-    <!-- inject:css -->
     <link rel="stylesheet" href="~/css/vertical-layout-light/style.css">
-    <!-- endinject -->
     <link rel="shortcut icon" href="~/images/favicon.png" />
+
     <style>
-        .nav-link:hover {
-            color: white;
+        :root {
+            --brand: #6b6fe3;
+            --brand-2: #74a2ff;
+            --ink: #0f172a;
+            --ink-2: #475569;
+            --line: #e5e7eb;
+            --bg: #f8fafc;
+            --glass: rgba(255,255,255,.7);
+            --radius: 16px;
+            --shadow: 0 10px 28px rgba(2,6,23,.12);
+            --sb-w: 260px; /* geniş mod */
+            --sb-w-mini: 84px; /* dar mod */
         }
+
+        body {
+            background: var(--bg);
+        }
+
+        .navbar {
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 2px 8px rgba(2,6,23,.05);
+        }
+
+            .navbar .navbar-brand.brand-logo {
+                font-weight: 800;
+                letter-spacing: .4px;
+                color: #343a40;
+                text-transform: uppercase;
+            }
+
+        /* ===== NEW SIDEBAR 2.0 ===== */
+        .page-body-wrapper {
+            display: flex;
+        }
+
+        .sidebar {
+            width: var(--sb-w);
+            background: linear-gradient(180deg,#ffffff, #f6f9ff);
+            border-right: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            padding: 10px 10px 14px;
+            transition: width .18s ease;
+            z-index: 1029;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            width: var(--sb-w-mini);
+        }
+
+        /* header */
+        .neo-sb-head {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .6rem .6rem;
+            margin: .25rem .25rem 10px;
+            border-radius: 12px;
+            background: linear-gradient(90deg,rgba(116,162,255,.12),rgba(107,111,227,.12));
+            border: 1px solid rgba(2,6,23,.06);
+        }
+
+        .neo-sb-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg,#eef2ff,#fff);
+            color: var(--brand);
+            box-shadow: inset 0 2px 6px rgba(107,111,227,.18);
+        }
+
+        .neo-sb-title {
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: .2px;
+        }
+
+        body.sidebar-collapsed .neo-sb-title {
+            display: none;
+        }
+
+        /* toggle pin */
+        .neo-sb-pin {
+            margin-left: auto;
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            background: #fff;
+            box-shadow: 0 6px 14px rgba(2,6,23,.08);
+            color: var(--ink-2);
+        }
+
+            .neo-sb-pin:hover {
+                filter: brightness(.98);
+            }
+
+        /* MENU */
+        .neo-menu {
+            list-style: none;
+            padding: 6px;
+            margin: 10px 0 0;
+            height: calc(100vh - 120px);
+            overflow: auto;
+        }
+
+        .neo-group {
+            margin: 14px 0 6px 10px;
+            font-size: .76rem;
+            font-weight: 800;
+            color: #94a3b8;
+            letter-spacing: .08em;
+        }
+
+        body.sidebar-collapsed .neo-group {
+            display: none;
+        }
+
+        .neo-item {
+            margin: 6px 0;
+        }
+
+        .neo-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .62rem .7rem .62rem 2.8rem;
+            margin: 0 .25rem;
+            color: var(--ink-2);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all .15s ease;
+        }
+
+            .neo-link:hover {
+                background: rgba(107,111,227,.08);
+                color: var(--ink);
+                transform: translateX(2px);
+            }
+
+            .neo-link.active {
+                background: rgba(107,111,227,.12);
+                box-shadow: inset 0 0 0 1px rgba(107,111,227,.18);
+                color: var(--ink);
+            }
+
+            /* sol renk şeridi */
+            .neo-link:before {
+                content: "";
+                position: absolute;
+                left: 10px;
+                top: 8px;
+                bottom: 8px;
+                width: 4px;
+                border-radius: 8px;
+                background: transparent;
+                transition: background .15s ease;
+            }
+
+            .neo-link:hover:before,
+            .neo-link.active:before {
+                background: linear-gradient(180deg,var(--brand-2),var(--brand));
+            }
+
+        /* ikon kapsülü */
+        .neo-ico {
+            position: absolute;
+            left: 10px;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg,#eef2ff,#fff);
+            color: var(--brand);
+            box-shadow: inset 0 2px 6px rgba(107,111,227,.18);
+            font-size: 14px;
+        }
+
+        .neo-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* collapse/alt menü */
+        .neo-collapse {
+            margin: 6px 8px 8px 12px;
+            padding: 6px 6px;
+            border-left: 2px dashed rgba(107,111,227,.25);
+            border-radius: 8px;
+        }
+
+        .neo-sublink {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            margin: 4px 0;
+            padding: .5rem .6rem .5rem 2rem;
+            border-radius: 10px;
+            color: var(--ink-2);
+            text-decoration: none;
+        }
+
+            .neo-sublink:hover {
+                background: rgba(107,111,227,.08);
+                color: var(--ink);
+            }
+
+        /* ok */
+        .neo-arrow {
+            margin-left: auto;
+            transition: transform .2s ease;
+            opacity: .75;
+        }
+
+            .neo-arrow.rot {
+                transform: rotate(90deg);
+            }
+
+        /* dar mod */
+        body.sidebar-collapsed .neo-link {
+            padding-left: 3.7rem;
+        }
+
+        body.sidebar-collapsed .neo-label {
+            display: none;
+        }
+
+        body.sidebar-collapsed .neo-group {
+            display: none;
+        }
+
+        body.sidebar-collapsed .neo-collapse {
+            display: none !important;
+        }
+
+        /* footer mini profile (opsiyonel) */
+        .neo-sb-foot {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 12px;
+            background: var(--glass);
+            border: 1px solid rgba(2,6,23,.06);
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            box-shadow: var(--shadow);
+        }
+
+        .neo-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #eef2ff;
+            display: grid;
+            place-items: center;
+            color: var(--brand);
+        }
+
+        .neo-usr {
+            font-weight: 700;
+            color: var(--ink);
+            font-size: .9rem;
+        }
+
+        .neo-mail {
+            font-size: .75rem;
+            color: #94a3b8;
+        }
+
+        body.sidebar-collapsed .neo-usr, body.sidebar-collapsed .neo-mail {
+            display: none;
+        }
+
+        /* content alanı */
+        .main-panel {
+            flex: 1;
+            min-height: 100vh;
+        }
+
+            .main-panel > * {
+                padding-left: clamp(16px, 2vw, 28px);
+                padding-right: clamp(16px, 2vw, 28px);
+            }
     </style>
 </head>
 
 <body>
     <div class="container-scroller">
-        <!-- partial:partials/_navbar.html -->
         <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
             <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-                <a class="navbar-brand brand-logo mr-5"><img src="~/images/logo-mini.svg" class="mr-2" />SEA~O</a>
+                <a class="navbar-brand brand-logo mr-5"><img src="~/images/logo-mini.svg" class="mr-2" />PABLİKA</a>
                 <a class="navbar-brand brand-logo-mini"><img src="~/images/logo-mini.svg" alt="logo" /></a>
             </div>
             <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
                 <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
                     <span class="icon-menu"></span>
                 </button>
-                <ul class="navbar-nav mr-lg-2">
-                </ul>
+                <ul class="navbar-nav mr-lg-2"></ul>
                 <ul class="navbar-nav navbar-nav-right">
-                    @if (User.IsInRole("Manager") || User.IsInRole("Employee"))
-                    {
-                       
-                    }
+                    @* profil menüsü *@
                     <li class="nav-item nav-profile dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" id="profileDropdown">
                             <img src="~/images/down-arrow (1).png" alt="profile" />
                         </a>
                         <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
                             <div class="dropdown-divider"></div>
-                            <div class="dropdown-item language-dropdown">
+                            <div class="dropdown-item">
                                 <i class="ti-world text-primary"></i>
-                                <span class="menu-title"></span>
-                                <select class="menu-title" id="selectLanguage" class="form-control mt-2" onclick="event.stopPropagation()">
+                                <select id="selectLanguage" onclick="event.stopPropagation()" style="margin-left:.5rem;border-radius:10px;border:1px solid var(--line);padding:.25rem .5rem;">
                                     <option value="">Language</option>
                                     <option value="tr">TR</option>
                                     <option value="en">EN</option>
@@ -65,27 +343,23 @@
                             @if (User.IsInRole("Admin"))
                             {
                                 <a class="dropdown-item d-flex align-items-center" href="javascript:void(0);" id="openAdminProfileModal">
-                                    <i class="bi bi-person"></i>
-                                    <span>My Profile</span>
+                                    <i class="ti-user"></i><span class="ml-2">My Profile</span>
                                 </a>
                             }
                             else if (User.IsInRole("Manager"))
                             {
                                 <a class="dropdown-item d-flex align-items-center" href="javascript:void(0);" id="openProfileModal">
-                                    <i class="bi bi-person"></i>
-                                    <span>My Profile</span>
+                                    <i class="ti-user"></i><span class="ml-2">My Profile</span>
                                 </a>
                             }
                             else if (User.IsInRole("Employee"))
                             {
                                 <a class="dropdown-item d-flex align-items-center" href="javascript:void(0);" id="openEmployeeProfileModal">
-                                    <i class="bi bi-person"></i>
-                                    <span>My Profile</span>
+                                    <i class="ti-user"></i><span class="ml-2">My Profile</span>
                                 </a>
                             }
                             <a class="dropdown-item" href="/MicrosoftIdentity/Account/SignOut">
-                                <i class="ti-power-off text-primary"></i>
-                                Logout
+                                <i class="ti-power-off text-primary"></i>Logout
                             </a>
                         </div>
                     </li>
@@ -96,316 +370,194 @@
             </div>
         </nav>
 
-        <!-- partial -->
         <div class="container-fluid page-body-wrapper">
-            <!-- partial:partials/_settings-panel.html -->
-            <div class="theme-setting-wrapper">
-                <div id="settings-trigger"><i class="ti-settings"></i></div>
-                <div id="theme-settings" class="settings-panel">
-                    <i class="settings-close ti-close"></i>
-                    <p class="settings-heading">SIDEBAR SKINS</p>
-                    <div class="sidebar-bg-options selected" id="sidebar-light-theme"><div class="img-ss rounded-circle bg-light border mr-3"></div>Light</div>
-                    <div class="sidebar-bg-options" id="sidebar-dark-theme"><div class="img-ss rounded-circle bg-dark border mr-3"></div>Dark</div>
-                    <p class="settings-heading mt-2">HEADER SKINS</p>
-                    <div class="color-tiles mx-0 px-4">
-                        <div class="tiles successtiles success"></div>
-                        <div class="tiles warning"></div>
-                        <div class="tiles danger"></div>
-                        <div class="tiles info"></div>
-                        <div class="tiles dark"></div>
-                        <div class="tiles default"></div>
-                    </div>
-                </div>
-            </div>
-            <div id="right-sidebar" class="settings-panel">
-                <i class="settings-close ti-close"></i>
-                <ul class="nav nav-tabs border-top" id="setting-panel" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" id="todo-tab" data-toggle="tab" href="#todo-section" role="tab" aria-controls="todo-section" aria-expanded="true">TO DO LIST</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="chats-tab" data-toggle="tab" href="#chats-section" role="tab" aria-controls="chats-section">CHATS</a>
-                    </li>
-                </ul>
-            </div>
+            <!-- MODERN SIDEBAR -->
+            <nav class="sidebar" id="sidebar">
+                
 
-            <!-- partial -->
-            <!-- partial:partials/_sidebar.html -->
-            <nav class="sidebar " id="sidebar" style="background-color: white">
-                <ul class="nav">
+                <ul class="neo-menu">
                     @if (User.IsInRole("Admin"))
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Home" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title">Dashboard</span>
+                        <div class="neo-group">ADMIN</div>
+                        <li class="neo-item">
+                            <a class="neo-link @(Context.Request.Path.Value?.Contains("/Admin/Home")==true?"active":"")"
+                               asp-area="Admin" asp-controller="Home" asp-action="Index">
+                                <span class="neo-ico"><i class="ti-layout"></i></span>
+                                <span class="neo-label">Dashboard</span>
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Company" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title">Company</span>
+                        <li class="neo-item">
+                            <a class="neo-link @(Context.Request.Path.Value?.Contains("/Admin/Company")==true?"active":"")"
+                               asp-area="Admin" asp-controller="Company" asp-action="Index">
+                                <span class="neo-ico"><i class="ti-briefcase"></i></span>
+                                <span class="neo-label">Company</span>
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Manager" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title">Manager</span>
+                        <li class="neo-item">
+                            <a class="neo-link @(Context.Request.Path.Value?.Contains("/Admin/Manager")==true?"active":"")"
+                               asp-area="Admin" asp-controller="Manager" asp-action="Index">
+                                <span class="neo-ico"><i class="ti-id-badge"></i></span>
+                                <span class="neo-label">Manager</span>
                             </a>
                         </li>
-
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-controller="Package" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title">Package</span>
+                        <li class="neo-item">
+                            <a class="neo-link @(Context.Request.Path.Value?.Contains("/Admin/Package")==true?"active":"")"
+                               asp-area="Admin" asp-controller="Package" asp-action="Index">
+                                <span class="neo-ico"><i class="ti-layers"></i></span>
+                                <span class="neo-label">Package</span>
                             </a>
                         </li>
                     }
                     else if (User.IsInRole("Manager"))
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Manager" asp-controller="Home" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title">Dashboard</span>
+                        <div class="neo-group">MANAGER</div>
+                        <li class="neo-item">
+                            <a class="neo-link @(Context.Request.Path.Value?.Contains("/Manager/Home")==true?"active":"")"
+                               asp-area="Manager" asp-controller="Home" asp-action="Index">
+                                <span class="neo-ico"><i class="ti-layout"></i></span>
+                                <span class="neo-label">Dashboard</span>
                             </a>
                         </li>
-                       @*  <li class="nav-item">
-                            <a class="nav-link" asp-area="Manager" asp-controller="" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title"></span>
-                            </a>
-                        </li> *@
-
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Manager" asp-controller="LeaveType" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title">LeaveType</span>
+                        <li class="neo-item">
+                            <a class="neo-link @(Context.Request.Path.Value?.Contains("/Manager/LeaveType")==true?"active":"")"
+                               asp-area="Manager" asp-controller="LeaveType" asp-action="Index">
+                                <span class="neo-ico"><i class="ti-tag"></i></span>
+                                <span class="neo-label">LeaveType</span>
                             </a>
                         </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
-                                <i class="icon-paper menu-icon"></i>
-                                <span class="menu-title">Requests</span>
-                                <i class="menu-arrow"></i>
+                        <div class="neo-group">REQUESTS</div>
+                        <li class="neo-item">
+                            <a class="neo-link" data-toggle="collapse" href="#reqCollapse" aria-expanded="false" aria-controls="reqCollapse">
+                                <span class="neo-ico"><i class="ti-menu"></i></span>
+                                <span class="neo-label">Requests</span>
+                                <i class="ti-angle-right neo-arrow"></i>
                             </a>
-                            <div class="collapse" id="auth">
-                                <ul class="nav flex-column sub-menu">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="Manager" asp-controller="Leave" asp-action="Index">
-                                            <i class=" "></i><span class="menu-title">Leave</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="Manager" asp-controller="Advance" asp-action="Index">
-                                            <i class=""></i><span class="menu-title">Advance</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="Manager" asp-controller="Expense" asp-action="Index">
-                                            <i class=""></i><span class="menu-title">Expense</span>
-                                        </a>
-                                    </li>
-                                </ul>
+                            <div class="collapse neo-collapse" id="reqCollapse">
+                                <a class="neo-sublink @(Context.Request.Path.Value?.Contains("/Manager/Leave")==true?"active":"")"
+                                   asp-area="Manager" asp-controller="Leave" asp-action="Index"><i class="ti-calendar"></i> Leave</a>
+                                <a class="neo-sublink @(Context.Request.Path.Value?.Contains("/Manager/Advance")==true?"active":"")"
+                                   asp-area="Manager" asp-controller="Advance" asp-action="Index"><i class="ti-credit-card"></i> Advance</a>
+                                <a class="neo-sublink @(Context.Request.Path.Value?.Contains("/Manager/Expense")==true?"active":"")"
+                                   asp-area="Manager" asp-controller="Expense" asp-action="Index"><i class="ti-receipt"></i> Expense</a>
+                                <a class="neo-sublink @(Context.Request.Path.Value?.Contains("/Manager/Employee")==true?"active":"")"
+                                   asp-area="Manager" asp-controller="Employee" asp-action="Index"><i class="ti-user"></i> Employee</a>
                             </div>
                         </li>
-                      @*   <li class="nav-item">
-                            <a class="nav-link" asp-area="Manager" asp-controller="" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title"></span>
-                            </a>
-                        </li> *@
-                      @*   <li class="nav-item">
-                            <a class="nav-link" asp-area="Manager" asp-controller="" asp-action="Index">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title"></span>
-                            </a>
-                        </li> *@
-                      @*   <li class="nav-item">
-                            <a class="nav-link" asp-area="Manager" asp-controller="" asp-action="Logs">
-                                <i class="icon-paper menu-icon"></i><span class="menu-title"></span>
-                            </a>
-                        </li> *@
                     }
                     else if (User.IsInRole("Employee"))
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="collapse" href="#auth" aria-expanded="false" aria-controls="auth">
-                                <i class="icon-head menu-icon"></i>
-                                <span class="menu-title">Request</span>
-                                <i class="menu-arrow"></i>
+                        <div class="neo-group">EMPLOYEE</div>
+                        <li class="neo-item">
+                            <a class="neo-link" data-toggle="collapse" href="#empReq" aria-expanded="false" aria-controls="empReq">
+                                <span class="neo-ico"><i class="ti-clipboard"></i></span>
+                                <span class="neo-label">Request</span>
+                                <i class="ti-angle-right neo-arrow"></i>
                             </a>
-                            <div class="collapse" id="auth">
-                                <ul class="nav flex-column sub-menu">
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="Employee" asp-controller="Leave" asp-action="Index">
-                                            <i class="icon-paper menu-icon"></i><span class="menu-title">Leave</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="Employee" asp-controller="Advance" asp-action="Index">
-                                            <i class="icon-paper menu-icon"></i><span class="menu-title">Advance</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="Employee" asp-controller="Expense" asp-action="Index">
-                                            <i class="icon-paper menu-icon"></i><span class="menu-title">Expense</span>
-                                        </a>
-                                    </li>
-                                </ul>
+                            <div class="collapse neo-collapse" id="empReq">
+                                <a class="neo-sublink" asp-area="Employee" asp-controller="Leave" asp-action="Index"><i class="ti-calendar"></i> Leave</a>
+                                <a class="neo-sublink" asp-area="Employee" asp-controller="Advance" asp-action="Index"><i class="ti-credit-card"></i> Advance</a>
+                                <a class="neo-sublink" asp-area="Employee" asp-controller="Expense" asp-action="Index"><i class="ti-receipt"></i> Expense</a>
                             </div>
                         </li>
                     }
                 </ul>
+
+                <div class="neo-sb-foot">
+                    <div class="neo-avatar"><i class="ti-user"></i></div>
+                    <div>
+                        <div class="neo-usr">@User.Identity?.Name</div>
+                        <div class="neo-mail">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</div>
+                    </div>
+                </div>
             </nav>
 
-            <div class="modal fade" id="profileModal3" tabindex="-1" aria-labelledby="profileModalLabel3" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="profileModalLabel3">Profile</h5>
-                        </div>
-                        <div class="modal-body" id="profileModalBody3">
-                            <!-- Profil içeriği buraya yüklenecek -->
-                        </div>
-                        <div class="modal-footer">
-                            <button id="ProfileAdminClose" class="custom-btn btn-profile" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                document.getElementById("openAdminProfileModal").addEventListener("click", function () {
-                    fetch('@Url.Action("Profile", "AdminAccount", new { area = "Admin" })')
-                        .then(response => response.text())
-                        .then(html => {
-                            document.getElementById("profileModalBody3").innerHTML = html;
-                            var modalElement = new bootstrap.Modal(document.getElementById("profileModal3"));
-                            modalElement.show();
-                        })
-                        .catch(error => console.error('Error loading profile:', error));
-                });
-            </script>
-
-            </nav>
-            <div class="modal fade" id="profileModal2" tabindex="-1" aria-labelledby="profileModalLabel2" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="profileModalLabel2">Profile</h5>
-                        </div>
-                        <div class="modal-body" id="profileModalBody2">
-                            <!-- Profil içeriği buraya yüklenecek -->
-                        </div>
-                        <div class="modal-footer">
-                            <button id="ProfileClose" class="custom-btn btn-profile" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                document.getElementById("openEmployeeProfileModal").addEventListener("click", function () {
-                    fetch('@Url.Action("Profile", "EmployeeAccount", new { area = "Employee" })')
-                        .then(response => response.text())
-                        .then(html => {
-                            document.getElementById("profileModalBody2").innerHTML = html;
-                            var modalElement = new bootstrap.Modal(document.getElementById("profileModal2"));
-                            modalElement.show();
-                        })
-                        .catch(error => console.error('Error loading profile:', error));
-                });
-            </script>
-
-            <!-- Modal -->
-            <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="profileModalLabel">Profile</h5>
-                        </div>
-                        <div class="modal-body" id="profileModalBody">
-                            <!-- Profil içeriği buraya yüklenecek -->
-                        </div>
-                        <div class="modal-footer">
-                            <button id="ProfileManagerClose" class="custom-btn btn-profile" data-dismiss="modal">Close</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                document.getElementById("openProfileModal").addEventListener("click", function () {
-                    fetch('@Url.Action("Profile", "ManagerAccount", new { area = "Manager" })')
-                        .then(response => response.text())
-                        .then(html => {
-                            document.getElementById("profileModalBody").innerHTML = html;
-                            var modalElement = new bootstrap.Modal(document.getElementById("profileModal"));
-                            modalElement.show();
-                        })
-                        .catch(error => console.error('Error loading profile:', error));
-                });
-            </script>
-
-            <!-- Gerekli CSS ve JS dosyalarını ekleyin -->
-            @section Styles {
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                <link rel="stylesheet" href="~/https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-                <link rel="stylesheet" href="~/css/site.css">
-                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css" />
-            }
-
-            @section Scripts {
-                <script src="~/https://code.jquery.com/jquery-3.6.0.min.js"></script>
-                <script src="~/https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.8/umd/popper.min.js"></script>
-                <script src="~/https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/js/bootstrap.min.js"></script>
-                <script src="~/https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-            }
-
-            <!-- partial -->
             <div class="main-panel">
                 @RenderBody()
-
-                <!-- partial:partials/_footer.html -->
-                @* <footer class="footer">
-                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2021.  Premium <a href="https://www.bootstrapdash.com/" target="_blank">Bootstrap admin template</a> from BootstrapDash. All rights reserved.</span>
-                        <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center">Hand-crafted & made with <i class="ti-heart text-danger ml-1"></i></span>
-                    </div>
-                    <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                        <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Distributed by <a href="https://www.themewagon.com/" target="_blank">Themewagon</a></span>
-                    </div>
-                </footer> *@
-                <!-- partial -->
             </div>
-            <!-- main-panel ends -->
         </div>
-        <!-- page-body-wrapper ends -->
     </div>
 
-    <!-- plugins:js -->
     <script src="~/vendors/js/vendor.bundle.base.js"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
     <script src="~/vendors/chart.js/Chart.min.js"></script>
     <script src="~/vendors/datatables.net/jquery.dataTables.js"></script>
     <script src="~/vendors/datatables.net-bs4/dataTables.bootstrap4.js"></script>
     <script src="~/js/dataTables.select.min.js"></script>
 
     <script>
-        document.getElementById('selectLanguage').addEventListener('change', function () {
-            var selectedCulture = this.value;
-            document.cookie = ".AspNetCore.Culture=c=" + selectedCulture + "|uic=" + selectedCulture + ";path=/";
-            location.reload();
-        })
+        // Dil seçimi
+        (function(){
+            const sel = document.getElementById('selectLanguage');
+            if(!sel) return;
+            sel.addEventListener('change', function(){
+                var c = this.value;
+                document.cookie = ".AspNetCore.Culture=c="+c+"|uic="+c+";path=/";
+                location.reload();
+            });
+        })();
+
+        // Sidebar Pin / Unpin
+        (function(){
+            const key = "sb_collapsed";
+            const btn = document.getElementById('sidebarToggle');
+            const setCollapsed = (v)=> {
+                if(v){ document.body.classList.add('sidebar-collapsed'); }
+                else { document.body.classList.remove('sidebar-collapsed'); }
+                localStorage.setItem(key, v? "1":"0");
+            };
+            // load
+            setCollapsed(localStorage.getItem(key)==="1");
+            if(btn){
+                btn.addEventListener('click', function(){
+                    setCollapsed(!document.body.classList.contains('sidebar-collapsed'));
+                });
+            }
+        })();
+
+        // Collapse oklarını döndür
+        (function(){
+            document.querySelectorAll('[data-toggle="collapse"][href], [data-toggle="collapse"][data-target]').forEach(function(tr){
+                const target = tr.getAttribute('href') || tr.getAttribute('data-target');
+                const arrow = tr.querySelector('.neo-arrow');
+                if(!target || !arrow) return;
+                const el = document.querySelector(target);
+                if(!el) return;
+
+                el.addEventListener('show.bs.collapse', function(){ arrow.classList.add('rot'); });
+                el.addEventListener('hide.bs.collapse', function(){ arrow.classList.remove('rot'); });
+
+                if (el.classList.contains('show')) { arrow.classList.add('rot'); }
+            });
+        })();
+
+        // Profil modalları (varsa)
+        (function(){
+            const bindModal = (btnId, area, ctrl, modalId, bodyId) => {
+                const btn = document.getElementById(btnId);
+                if(!btn) return;
+                btn.addEventListener('click', function(){
+                    fetch('@Url.Content("~")'+`${area}/${ctrl}/Profile`)
+                        .then(r=>r.text())
+                        .then(html=>{
+                            document.getElementById(bodyId).innerHTML=html;
+                            new bootstrap.Modal(document.getElementById(modalId)).show();
+                        });
+                });
+            };
+            // Örnek: bindModal("openProfileModal","Manager","ManagerAccount","profileModal","profileModalBody");
+            // Projendeki mevcut modal id’lerine göre zaten tanımlı çağrıların var; istersen buradan yönetebilirsin.
+        })();
     </script>
 
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
     <script src="~/js/off-canvas.js"></script>
     <script src="~/js/hoverable-collapse.js"></script>
     <script src="~/js/template.js"></script>
     <script src="~/js/settings.js"></script>
     <script src="~/js/todolist.js"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page-->
     <script src="~/js/dashboard.js"></script>
     <script src="~/js/Chart.roundedBarCharts.js"></script>
-    <!-- End custom js for this page-->
-    @await RenderSectionAsync("Scripts", required: false);
-    @await RenderSectionAsync("Styles", required: false);
+
+    @await RenderSectionAsync("Scripts", required: false)
+    @await RenderSectionAsync("Styles", required: false)
 </body>
 </html>

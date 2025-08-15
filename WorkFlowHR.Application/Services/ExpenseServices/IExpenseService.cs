@@ -8,10 +8,10 @@ namespace WorkFlowHR.Application.Services.ExpenseServices
     public interface IExpenseService
     {
         Task<IDataResult<List<ExpenseListDTO>>> GetAllAsync();
-        Task<IDataResult<ExpenseDTO>> CreateAsync(ExpenseCreateDTO dto);
-        Task<IDataResult<ExpenseDTO>> GetByIdAsync(Guid id);
-        Task<IResult> UpdateAsync(ExpenseUpdateDTO dto);
+        Task<IDataResult<ExpenseDTO>> CreateAsync(ExpenseCreateDTO expenseCreateDTO);
         Task<IResult> DeleteAsync(Guid id);
+        Task<IDataResult<ExpenseDTO>> GetByIdAsync(Guid id);
+        Task<IDataResult<ExpenseDTO>> UpdateAsync(ExpenseUpdateDTO expenseUpdateDTO);
 
     }
 }

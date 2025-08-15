@@ -65,10 +65,10 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             var dto = vm.Adapt<AdvanceCreateDTO>();
 
             // ImageFile -> byte[]
-            if (vm.ImageFile != null)
+            if (vm.NewImage != null)
             {
                 using var ms = new MemoryStream();
-                await vm.ImageFile.CopyToAsync(ms);
+                await vm.NewImage.CopyToAsync(ms);
                 dto.Image = ms.ToArray();
             }
 
@@ -99,7 +99,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
 
             var vm = res.Data.Adapt<AdvanceEditVM>();
             vm.ExistingImage = res.Data.Image;
-            vm.Managers = await GetManagers(vm.ManagerAppUserId);
+            vm.Managers = await GetManagers(vm.ManagerId);
             return View(vm);
         }
 
@@ -109,7 +109,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.Managers = await GetManagers(vm.ManagerAppUserId);
+                vm.Managers = await GetManagers(vm.ManagerId);
                 return View(vm);
             }
 
@@ -130,7 +130,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (!res.IsSuccess)
             {
                 ModelState.AddModelError("", res.Messages);
-                vm.Managers = await GetManagers(vm.ManagerAppUserId);
+                vm.Managers = await GetManagers(vm.ManagerId);
                 return View(vm);
             }
 

@@ -18,7 +18,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Models.AdvanceVMs
         public Guid ManagerId { get; set; }
         public SelectList Managers { get; set; }
         public AdvanceStatus AdvanceStatus { get; set; } = AdvanceStatus.Pending;
-        public string ManagerFirstName { get; set; }
-        public string ManagerLastName { get; set; }
+        public string AppUserDisplayName { get; set; } = null!;
+      
     }
 }

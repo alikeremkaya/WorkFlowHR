@@ -20,7 +20,8 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
     {
         private readonly ILeaveTypeService _leaveTypeService;
         private readonly ILeaveService _leaveService;
-        private readonly IAppUserService _appUserService;
+        private readonly IAppUserService _userService;
+
         private readonly ILogger<LeaveController> _logger;
 
         public LeaveController(
@@ -31,11 +32,11 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
         {
             _leaveTypeService = leaveTypeService;
             _leaveService = leaveService;
-            _appUserService = appUserService;
+            _userService = appUserService;
             _logger = logger;
         }
 
-        // LIST
+      
         public async Task<IActionResult> Index()
         {
             var result = await _leaveService.GetAllAsync();
@@ -49,31 +50,33 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             return View(leaveVMs);
         }
 
-        // DETAILS
+
         public async Task<IActionResult> Details(Guid id)
         {
             var result = await _leaveService.GetByIdAsync(id);
-            if (!result.IsSuccess || result.Data == null)
+            if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
-            var vm = result.Data.Adapt<LeaveDetailsVM>();
-            return View(vm);
+            var leaveDetailsVM = result.Data.Adapt<LeaveDetailsVM>();
+            return View(leaveDetailsVM);
         }
 
-        // CREATE (GET)
+
         public async Task<IActionResult> Create()
         {
             var vm = new LeaveCreateVM
             {
-                LeaveTypes = await GetLeaveTypes()
+                LeaveTypes = await GetLeaveTypes(),
+                Managers = await GetManagers(), 
+
             };
             return View(vm);
         }
 
-        // CREATE (POST)
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(LeaveCreateVM model)
@@ -96,90 +99,108 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             }
 
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        // DELETE
+      
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _leaveService.DeleteAsync(id);
             if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        // UPDATE (GET)
+
+        [HttpGet]
         public async Task<IActionResult> Update(Guid id)
         {
             var result = await _leaveService.GetByIdAsync(id);
             if (!result.IsSuccess || result.Data == null)
             {
-                await Console.Out.WriteLineAsync(result.Messages);
+                TempData["Error"] = result.Messages ?? "Kayıt bulunamadı.";
                 return RedirectToAction(nameof(Index));
             }
 
             var vm = result.Data.Adapt<LeaveEditVM>();
+
+            // KRİTİK: kayıt AppUserId taşıyor; formdaki dropdown ManagerId
+            vm.ManagerId = result.Data.AppUserId;
+
             vm.LeaveTypes = await GetLeaveTypes(vm.LeaveTypeId);
+            vm.Managers = await GetManagers(vm.ManagerId);
+
             return View(vm);
         }
 
-        // UPDATE (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(LeaveEditVM model)
         {
             if (!ModelState.IsValid)
             {
+                
                 model.LeaveTypes = await GetLeaveTypes(model.LeaveTypeId);
+                model.Managers = await GetManagers(model.ManagerId);
                 return View(model);
             }
 
             var dto = model.Adapt<LeaveUpdateDTO>();
-            var result = await _leaveService.UpdateAsync(dto);
 
+            
+            dto.AppUserId = model.ManagerId;
+
+         
+
+            var result = await _leaveService.UpdateAsync(dto);
             if (!result.IsSuccess)
             {
-                await Console.Out.WriteLineAsync(result.Messages);
+                ModelState.AddModelError(string.Empty, result.Messages);
                 model.LeaveTypes = await GetLeaveTypes(model.LeaveTypeId);
+                model.Managers = await GetManagers(model.ManagerId);
                 return View(model);
             }
 
-            await Console.Out.WriteLineAsync(result.Messages);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
+
+            TempData["Success"] = "Leave updated.";
             return RedirectToAction(nameof(Index));
         }
 
-        // APPROVE
+
+
         public async Task<IActionResult> ApproveLeave(Guid id)
         {
             var result = await _leaveService.ApproveLeaveAsync(id);
             if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        // REJECT
+       
         public async Task<IActionResult> RejectLeave(Guid id)
         {
             var result = await _leaveService.RejectLeaveAsync(id);
             if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        // ----------------- helpers -----------------
+
         private async Task<SelectList> GetLeaveTypes(Guid? selectedId = null)
         {
             var res = await _leaveTypeService.GetAllAsync();
@@ -189,8 +210,30 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
                 .Select(x => new SelectListItem
                 {
                     Value = x.Id.ToString(),
-                    Text = x.Name, // <-- Type değil Name
+                    Text = x.Name,
                     Selected = selectedId.HasValue && x.Id == selectedId.Value
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
+
+            return new SelectList(items, "Value", "Text", selectedId?.ToString());
+        }
+
+        private async Task<SelectList> GetManagers(Guid? selectedId = null)
+        {
+            // AppUser servisinizle tutarlı olun
+            var res = await _userService.GetAllAsync();
+            if (!res.IsSuccess || res.Data == null)
+                return new SelectList(Enumerable.Empty<SelectListItem>());
+
+            var items = res.Data
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = string.IsNullOrWhiteSpace(u.DisplayName)
+                               ? $"{u.DisplayName}".Trim()
+                               : u.DisplayName,
+                    Selected = selectedId.HasValue && u.Id == selectedId.Value
                 })
                 .OrderBy(x => x.Text)
                 .ToList();
@@ -207,7 +250,7 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             if (string.IsNullOrWhiteSpace(email))
                 throw new InvalidOperationException("User email claim not found.");
 
-            var user = await _appUserService.GetByEmailAsync(email);
+            var user = await _userService.GetByEmailAsync(email);
             if (!user.IsSuccess || user.Data == null)
                 throw new InvalidOperationException("AppUser not found for current user.");
 

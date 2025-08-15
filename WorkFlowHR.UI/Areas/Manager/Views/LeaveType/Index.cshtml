@@ -1,13 +1,9 @@
 ﻿@model IEnumerable<WorkFlowHR.UI.Areas.Manager.Models.LeaveTypeVMs.LeaveTypeListVM>
 
-
 @{
     ViewData["Title"] = "Leave Types";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-
-
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -18,18 +14,21 @@
 
 <br />
 <br />
-<div class="header">
-    <h1 class="page-title">Leave Types</h1>
-    <a href="javascript:void(0);" class="btn btn-create" onclick="openCreateModal()">Add</a>
+
+<!-- Neo header -->
+<div class="neo-page-header">
+    <h1 class="neo-page-title">Leave Types</h1>
+    <a href="javascript:void(0);" class="btn neo-btn-gradient btn-create" onclick="openCreateModal()">Add</a>
 </div>
 
-<div class="table-responsive">
-    <table id="leaveTypesTable" class="table table-hover display nowrap" style="width:100%">
+<!-- Kart içinde tablo -->
+<div class="neo-card table-responsive">
+    <table id="leaveTypesTable" class="table table-hover display nowrap neo-table" style="width:100%">
         <thead>
             <tr>
-                <th style="background-color:#7978E9; color:white">Type</th>
-                <th style="background-color:#7978E9; color:white">Description</th>
-                <th style="background-color:#7978E9; color:white">Actions</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -38,7 +37,7 @@
                 <tr>
                     <td>@Html.DisplayFor(modelItem => item.Name)</td>
                     <td>
-                        <span class="description-tooltip" data-toggle="tooltip" title="@item.Description">
+                        <span class="description-tooltip" data-bs-toggle="tooltip" title="@item.Description">
                             @(item.Description.Length > 30 ? item.Description.Substring(0, 30) + "..." : item.Description)
                         </span>
                     </td>
@@ -59,15 +58,13 @@
     </table>
 </div>
 
-<!-- Create Modal -->
-<div id="createModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+<!-- Create Modal (Bootstrap 5 markup) -->
+<div id="createModal" class="modal fade" tabindex="-1" aria-labelledby="createModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content neo-modal">
             <div class="modal-header">
-                <h4 class="modal-title">Create Leave Type</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h4 class="modal-title" id="createModalLabel">Create Leave Type</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="createModalContent">
                 <!-- Content loaded by AJAX -->
@@ -76,15 +73,13 @@
     </div>
 </div>
 
-<!-- Update Modal -->
-<div id="updateModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
+<!-- Update Modal (Bootstrap 5 markup) -->
+<div id="updateModal" class="modal fade" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content neo-modal">
             <div class="modal-header">
-                <h4 class="modal-title">Update Leave Type</h4>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <h4 class="modal-title" id="updateModalLabel">Update Leave Type</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="updateModalContent">
                 <!-- Content loaded by AJAX -->
@@ -99,11 +94,12 @@
     }
     <script>
         $(document).ready(function () {
+            // DataTable
             $('#leaveTypesTable').DataTable({
-                "paging": true,
-                "ordering": true,
-                "info": true,
-                "searching": true,
+                paging: true,
+                ordering: true,
+                info: true,
+                searching: true,
                 language: {
                     lengthMenu: "Göster _MENU_ kayıt",
                     search: "Ara:",
@@ -111,16 +107,42 @@
                         next: "İleri",
                         previous: "Geri"
                     },
-                    "info": "_START_ - _END_ arası gösteriliyor (toplam _TOTAL_ kayıt)",
-                    "infoEmpty": "Tabloda veri yok",
-                    "emptyTable": "Tabloda veri yok"
+                    info: "_START_ - _END_ arası gösteriliyor (toplam _TOTAL_ kayıt)",
+                    infoEmpty: "Tabloda veri yok",
+                    emptyTable: "Tabloda veri yok"
                 }
             });
 
-            // Tooltip etkinleştir
-            $('[data-toggle="tooltip"]').tooltip();
+            // Bootstrap 5 tooltip init
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (el) { return new bootstrap.Tooltip(el); });
+
+            // Dropdown menüleri yönet
+            $('.table-dropdown-menu').hide();
+            $('.table-dropdown-toggle').click(function (e) {
+                e.stopPropagation();
+                var $menu = $(this).siblings('.table-dropdown-menu');
+
+                if ($menu.is(':visible')) {
+                    $menu.hide();
+                } else {
+                    $('.table-dropdown-menu').hide();
+                    var offset = $(this).offset();
+                    var dropdownHeight = $menu.outerHeight();
+                    var windowHeight = $(window).height();
+                    var spaceBelow = windowHeight - (offset.top + $(this).outerHeight());
+
+                    if (spaceBelow < dropdownHeight) {
+                        $menu.css({ top: offset.top - dropdownHeight, left: offset.left }).show();
+                    } else {
+                        $menu.css({ top: offset.top + $(this).outerHeight(), left: offset.left }).show();
+                    }
+                }
+            });
+            $(document).click(function () { $('.table-dropdown-menu').hide(); });
         });
 
+        // Delete
         $('.dropdown-item-delete').click(function () {
             var id = $(this).data('id');
             swal({
@@ -128,17 +150,8 @@
                 text: "Bu kaydı silmek istediğinize emin misiniz?",
                 icon: "warning",
                 buttons: {
-                    cancel: {
-                        text: "Hayır",
-                        visible: true,
-                        className: "btn btn-secondary",
-                        closeModal: true
-                    },
-                    confirm: {
-                        text: "Evet",
-                        className: "btn btn-danger",
-                        closeModal: false
-                    }
+                    cancel: { text: "Hayır", visible: true, className: "btn btn-secondary", closeModal: true },
+                    confirm: { text: "Evet", className: "btn btn-danger", closeModal: false }
                 }
             }).then((isConfirm) => {
                 if (isConfirm) {
@@ -146,14 +159,9 @@
                         url: '@Url.Action("Delete", "LeaveType", new { area = "Manager" })',
                         type: 'POST',
                         data: { id: id },
-                        success: function (response) {
-                            swal({
-                                title: "Silindi",
-                                text: "Kayıt başarıyla silindi.",
-                                icon: "success"
-                            }).then(() => {
-                                location.reload();
-                            });
+                        success: function () {
+                            swal({ title: "Silindi", text: "Kayıt başarıyla silindi.", icon: "success" })
+                                .then(() => { location.reload(); });
                         },
                         error: function () {
                             swal("Hata", "Silme işlemi başarısız oldu.", "error");
@@ -165,13 +173,15 @@
             });
         });
 
+        // Modals (Bootstrap 5 API)
         function openCreateModal() {
             $.ajax({
                 url: '@Url.Action("Create")',
                 type: 'GET',
                 success: function (result) {
                     $('#createModalContent').html(result);
-                    $('#createModal').modal('show');
+                    var m = new bootstrap.Modal(document.getElementById('createModal'));
+                    m.show();
                 }
             });
         }
@@ -182,117 +192,111 @@
                 type: 'GET',
                 success: function (result) {
                     $('#updateModalContent').html(result);
-                    $('#updateModal').modal('show');
+                    var m = new bootstrap.Modal(document.getElementById('updateModal'));
+                    m.show();
                 }
             });
         }
 
         function closeModal(modalId) {
-            $('#' + modalId).modal('hide');
+            var el = document.getElementById(modalId);
+            var inst = bootstrap.Modal.getInstance(el) || new bootstrap.Modal(el);
+            inst.hide();
         }
     </script>
 }
 
 <style>
+    /* Tema uyumlu başlık barı */
+    .neo-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        padding: 18px 22px;
+        margin: 0 20px 18px 20px;
+        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
+        border: 1px solid rgba(2,6,23,.06);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(2,6,23,.06)
+    }
+
+    .neo-page-title {
+        margin: 0;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    /* Aksiyon butonu */
+    .neo-btn-gradient {
+        background: linear-gradient(90deg,#06b6d4,#22d3ee);
+        color: #fff !important;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: .2px;
+        box-shadow: 0 10px 20px rgba(2,6,23,.18);
+        transition: transform .15s ease, box-shadow .15s ease
+    }
+
+        .neo-btn-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(2,6,23,.20)
+        }
+
+    /* Kart */
+    .neo-card {
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(2,6,23,.10);
+        background: rgba(255,255,255,.9);
+        border: 1px solid rgba(2,6,23,.08);
+        margin: 0 20px;
+        padding: 10px 20px;
+    }
+
+    /* Tablo üst başlık gradient */
+    .neo-table thead th {
+        background: linear-gradient(90deg,#7c3aed,#06b6d4);
+        color: #fff;
+        border: none !important;
+    }
+
+    .neo-table tbody tr:hover {
+        background: rgba(124,58,237,.06)
+    }
+
     body {
         background: #F5F7FF;
     }
 
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        padding: 0 40px;
+    .modal-content.neo-modal {
+        border-radius: 12px;
+        box-shadow: 0 10px 28px rgba(2,6,23,.18);
+        border: 1px solid rgba(2,6,23,.08);
     }
 
-    .page-title {
-        color: #7978E9;
-        margin: 0;
-        font-size: 2em;
-    }
-
-    .btn-create {
-        text-decoration: none;
-        background-color: #7978E9;
-        color: white;
-        font-weight: bold;
-        padding: 8px 15px;
-        border-radius: 15px;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-        font-size: 0.9em;
-        width: 150px;
-        text-align: center;
-    }
-
-    .table-responsive {
-        border-radius: 8px;
-        overflow-x: auto; /* sadece yatay taşma olduğunda kaydırma çubuğu ekler */
-        overflow-y: visible; /* dikey taşma olduğunda kaydırma çubuğu ekler */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: white;
-        margin: 0 20px; /* Sağdan ve soldan 30px boşluk bırakır */
-        padding: 0 30px; /* İç kenar boşluğu ekler */
-    }
-
-    .table-hover.display.nowrap {
-        margin-left: auto;
-        margin-right: auto;
-        width: calc(100% - 40px); /* Sağdan ve soldan 20px boşluk bırakır */
-    }
-
-    #leaveTypesTable thead th {
-        background-color: #7978E9;
-        color: white;
-    }
-
-    #leaveTypesTable thead {
-        border-bottom: 2px solid #7978E9;
-    }
-
-    .modal {
-        display: none;
+    .dropdown-menu {
         position: fixed;
-        z-index: 1050;
-        left: 0;
         top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-content {
+        left: 0;
+        transform: translate(0, 0);
+        z-index: 1000;
+        display: none;
         background-color: #fff;
-        margin: auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 8px;
-        position: relative;
+        min-width: 10rem;
+        padding: .5rem 0;
+        margin: .125rem 0 0;
+        font-size: 1rem;
+        color: #212529;
+        text-align: left;
+        list-style: none;
+        background-clip: padding-box;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: .25rem;
+        max-height: 300px;
+        overflow: auto;
+        box-shadow: 0 10px 24px rgba(2,6,23,.12);
     }
-
-    .modal-close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        color: #000;
-        font-size: 30px;
-        font-weight: bold;
-        transition: 0.3s;
-        cursor: pointer;
-    }
-
-        .modal-close:hover,
-        .modal-close:focus {
-            color: #bbb;
-            text-decoration: none;
-            cursor: pointer;
-        }
 
     .btn {
         border: none;
@@ -304,74 +308,11 @@
         transition: background-color 0.3s ease;
     }
 
-    .btn-success {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .btn-danger {
-        background-color: #dc3545;
-        color: white;
-    }
-
     .btn-secondary {
         color: #fff;
         background-color: #6c757d;
         border-color: #6c757d;
     }
-
-    .badge {
-        font-size: 0.875em;
-        border-radius: 0.25rem;
-        padding: 0.5em;
-        color: white;
-    }
-
-    .badge-warning {
-        background-color: #EE7B11;
-    }
-
-    .badge-success {
-        background-color: #28a745;
-    }
-
-    .badge-danger {
-        background-color: #dc3545;
-    }
-
-    .dropdown-item:hover {
-        transition: background-color 0.2s ease-in-out;
-    }
-
-    .dropdown-item-approve:hover {
-        background-color: #28a745;
-    }
-
-    .dropdown-item-reject:hover {
-        background-color: #dc3545;
-    }
-
-    .dropdown-item-update:hover {
-        background-color: #7978E9; /* Ekle butonunun rengi */
-    }
-
-    .dropdown-item-delete:hover {
-        background-color: #e67350;
-    }
-
-    .btn-delete-direct {
-        background-color: #ff7f50;
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-        .btn-delete-direct:hover {
-            background-color: #e67350;
-        }
 
     .dataTables_wrapper .dataTables_length {
         margin-top: 20px;
@@ -380,14 +321,9 @@
     }
 
     .dataTables_wrapper .dataTables_filter {
-        float: right; /* Arama kutusunu sağa kaydırır */
-        text-align: right; /* Metin hizalamasını sağa kaydırır */
-        padding-right: 20px; /* Sağdan biraz boşluk bırakır */
-    }
-
-    .dataTables_wrapper .dataTables_length,
-    .dataTables_wrapper .dataTables_filter {
-        margin-bottom: 20px.
+        float: right;
+        text-align: right;
+        padding-right: 20px;
     }
 
         .dataTables_wrapper .dataTables_length label,
@@ -398,16 +334,10 @@
 
         .dataTables_wrapper .dataTables_length select,
         .dataTables_wrapper .dataTables_filter input {
-            color: #7978E9;
-            border: 1px solid #7978E9;
-            border-radius: 5px;
+            color: #0f172a;
+            border: 1px solid rgba(2,6,23,.15);
+            border-radius: 10px;
             padding: 5px;
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            height: 25px;
-            margin-top: 5px;
-            margin-left: 10px;
         }
 
         .dataTables_wrapper .dataTables_filter input {
@@ -417,7 +347,6 @@
             font-size: 14px;
             margin-top: 10px;
             margin-right: 10px;
-            border: 1px solid #7978E9;
             background-color: #f5f5f5;
         }
 
@@ -429,27 +358,5 @@
 
     .dataTables_wrapper .dataTables_info {
         margin-left: 20px;
-    }
-
-    .dropdown-menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        transform: translate(0, 0);
-        z-index: 1000;
-        display: none;
-        background-color: white;
-        min-width: 10rem;
-        padding: 0.5rem 0;
-        margin: 0.125rem 0 0;
-        font-size: 1rem;
-        color: #212529;
-        text-align: left;
-        list-style: none;
-        background-clip: padding-box;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: 0.25rem;
-        max-height: 300px;
-        overflow: auto;
     }
 </style>

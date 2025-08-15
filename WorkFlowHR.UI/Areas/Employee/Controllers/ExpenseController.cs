@@ -16,38 +16,23 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
     public class ExpenseController : Controller
     {
         private readonly IExpenseService _expenseService;
-        private readonly IAppUserService _appUserService;
-        private readonly ILogger<ExpenseController> _logger;
+        private readonly IAppUserService _userService;
 
-        public ExpenseController(
-            IExpenseService expenseService,
-            IAppUserService appUserService,
-            ILogger<ExpenseController> logger)
+        public ExpenseController(IExpenseService expenseService, IAppUserService appUserService)
         {
             _expenseService = expenseService;
-            _appUserService = appUserService;
-            _logger = logger;
+            _userService = appUserService;
         }
 
-        // LIST
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var result = await _expenseService.GetAllAsync();
-            if (!result.IsSuccess || result.Data == null)
-            {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return View(new List<ExpenseListVM>());
-            }
-
-            var vms = result.Data.Adapt<List<ExpenseListVM>>();
-            await Console.Out.WriteLineAsync(result.Messages);
+            var res = await _expenseService.GetAllAsync();
+            var vms = (res.Data ?? new List<ExpenseListDTO>()).Adapt<List<ExpenseListVM>>();
             return View(vms);
         }
 
-        // DETAILS
-
-
-        // CREATE (GET)
+        [HttpGet]
         public async Task<IActionResult> Create()
         {
             var vm = new ExpenseCreateVM
@@ -57,152 +42,116 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             return View(vm);
         }
 
-        // CREATE (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ExpenseCreateVM model)
+        public async Task<IActionResult> Create(ExpenseCreateVM vm)
         {
             if (!ModelState.IsValid)
+                return View(vm);
+
+            var dto = new ExpenseCreateDTO
             {
-                model.Managers = await GetManagers(model.ManagerId);
-                return View(model);
+                Amount = vm.Amount,
+                ExpenseDate = vm.ExpenseDate,
+                Description = vm.Description,
+                AppUserId = await ResolveCurrentAppUserIdAsync()
+            };
+
+            var file = vm.NewImage ?? vm.NewImage;
+            if (file != null && file.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await file.CopyToAsync(ms);
+                dto.Image = ms.ToArray();   // <-- sadece byte[] gönderiyoruz
             }
 
-            try
+
+
+            var res = await _expenseService.CreateAsync(dto);
+            if (!res.IsSuccess)
             {
-                var dto = model.Adapt<ExpenseCreateDTO>();
-
-                // Image
-                if (model.NewImage != null && model.NewImage.Length > 0)
-                {
-                    dto.Image = await model.NewImage.StringToByteArrayAsync();
-                }
-
-                // Güvenlik: AppUserId login’den
-
-
-                // VM’de ManagerId varsa, DTO’da ManagerAppUserId’ye eşle (alan adları farklı)
-                dto.ManagerAppUserId = model.ManagerId;
-
-                var result = await _expenseService.CreateAsync(dto);
-                if (!result.IsSuccess)
-                {
-                    model.Managers = await GetManagers(model.ManagerId);
-                    await Console.Out.WriteLineAsync(result.Messages);
-                    return View(model);
-                }
-
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Expense create error");
-                await Console.Out.WriteLineAsync($"Unexpected error: {ex.Message}");
-                model.Managers = await GetManagers(model.ManagerId);
-                return RedirectToAction("Index");
-            }
-        }
-
-        // DELETE
-        public async Task<IActionResult> Delete(Guid id)
-        {
-            var result = await _expenseService.DeleteAsync(id);
-            if (!result.IsSuccess)
-            {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(string.Empty, res.Messages);
+                return View(vm);
             }
 
-            await Console.Out.WriteLineAsync(result.Messages);
             return RedirectToAction(nameof(Index));
         }
 
-        // UPDATE (GET)
+        [HttpGet]
         public async Task<IActionResult> Update(Guid id)
         {
-            var result = await _expenseService.GetByIdAsync(id);
-            if (!result.IsSuccess || result.Data == null)
-            {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
-            }
+            var res = await _expenseService.GetByIdAsync(id);
 
-            var vm = result.Data.Adapt<ExpenseEditVM>();
+
+            if (!res.IsSuccess || res.Data == null)
+                return NotFound();
+
+            var vm = res.Data.Adapt<ExpenseUpdateVM>();
+            vm.ExistingImage = res.Data.Image;
             vm.Managers = await GetManagers(vm.ManagerId);
-            vm.ExistingImage = result.Data.Image;
-            vm.Description = result.Data.Description;
 
-            return View(vm);
+            return PartialView(vm);
         }
 
-        // UPDATE (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(ExpenseEditVM model)
+        public async Task<IActionResult> Update(ExpenseUpdateVM vm)
         {
             if (!ModelState.IsValid)
+                return View(vm);
+
+            var dto = vm.Adapt<ExpenseUpdateDTO>();
+
+            if (vm.NewImage != null && vm.NewImage.Length > 0)
             {
-                model.Managers = await GetManagers(model.ManagerId);
-                return View(model);
+                using var ms = new MemoryStream();
+                await vm.NewImage.CopyToAsync(ms);
+                dto.Image = ms.ToArray();
             }
 
-            var current = await _expenseService.GetByIdAsync(model.Id);
-            if (!current.IsSuccess || current.Data == null)
+            // AppUserId’yi koru
+            if (dto.AppUserId == Guid.Empty)
+                dto.AppUserId = await ResolveCurrentAppUserIdAsync();
+
+            var res = await _expenseService.UpdateAsync(dto);
+            if (!res.IsSuccess)
             {
-                await Console.Out.WriteLineAsync(current.Messages);
-                return RedirectToAction(nameof(Index));
+                ModelState.AddModelError(string.Empty, res.Messages);
+                return View(vm);
             }
 
-            var dto = model.Adapt<ExpenseUpdateDTO>();
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return Json(new { success = true, redirectUrl = Url.Action(nameof(Index)) });
 
-            // Yeni resim geldiyse değiştir, yoksa eskisini koru
-            if (model.NewImage != null && model.NewImage.Length > 0)
-                dto.Image = await model.NewImage.StringToByteArrayAsync();
-            else
-                dto.Image = current.Data.Image;
-
-            // VM’de ManagerId → DTO’da ManagerAppUserId
-            dto.ManagerAppUserId = model.ManagerId;
-
-            var result = await _expenseService.UpdateAsync(dto);
-            if (!result.IsSuccess)
-            {
-                await Console.Out.WriteLineAsync(result.Messages);
-                model.Managers = await GetManagers(model.ManagerId);
-                return View(model);
-            }
-
-            await Console.Out.WriteLineAsync(result.Messages);
+            TempData["Success"] = "Expense updated.";
             return RedirectToAction(nameof(Index));
         }
 
-        // ----------------- helpers -----------------
-        private async Task<Guid> ResolveCurrentAppUserIdAsync()
+        public async Task<IActionResult> Delete(Guid id)
         {
-            var email = User.FindFirstValue(ClaimTypes.Email)
-                     ?? User.FindFirst("preferred_username")?.Value
-                     ?? User.FindFirst(ClaimTypes.Upn)?.Value;
+            if (ModelState.IsValid)
+            {
+                var result = await _expenseService.DeleteAsync(id);
+                if (!result.IsSuccess)
+                {
+                    await Console.Out.WriteLineAsync(result.Messages);
+                    return RedirectToAction("Index");
+                }
 
-            if (string.IsNullOrWhiteSpace(email))
-                throw new InvalidOperationException("User email claim not found.");
-
-            var user = await _appUserService.GetByEmailAsync(email);
-            if (!user.IsSuccess || user.Data == null)
-                throw new InvalidOperationException("AppUser not found for current user.");
-
-            return user.Data.Id;
+                await Console.Out.WriteLineAsync(result.Messages);
+                return RedirectToAction("Index");
+            }
+            return RedirectToAction("Index", "Home");
         }
 
         private async Task<SelectList> GetManagers(Guid? selectedId = null)
         {
-            var res = await _appUserService.GetAllAsync();
+            // Tüm AppUser’ları getir (rol filtrelemek istersen burada yaparsın)
+            var res = await _userService.GetAllAsync();
             if (!res.IsSuccess || res.Data == null)
                 return new SelectList(Enumerable.Empty<SelectListItem>());
 
             var items = res.Data
-                // İstersen sadece Manager rolünü göster:
-                // .Where(u => string.Equals(u.Role, "Manager", StringComparison.OrdinalIgnoreCase))
                 .Select(u => new SelectListItem
                 {
                     Value = u.Id.ToString(),
@@ -213,6 +162,21 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
                 .ToList();
 
             return new SelectList(items, "Value", "Text", selectedId?.ToString());
+        }
+        private async Task<Guid> ResolveCurrentAppUserIdAsync()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email)
+                     ?? User.FindFirst("preferred_username")?.Value
+                     ?? User.FindFirst(ClaimTypes.Upn)?.Value;
+
+            if (string.IsNullOrWhiteSpace(email))
+                throw new InvalidOperationException("User email claim not found.");
+
+            var user = await _userService.GetByEmailAsync(email);
+            if (!user.IsSuccess || user.Data == null)
+                throw new InvalidOperationException("AppUser not found for current user.");
+
+            return user.Data.Id;
         }
     }
 }

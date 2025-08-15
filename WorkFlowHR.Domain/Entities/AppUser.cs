@@ -21,7 +21,7 @@ namespace WorkFlowHR.Domain.Entities
         [StringLength(100)]
         public string AzureAdObjectId { get; set; } = null!;
 
-      
+        public byte[]? Image { get; set; }
 
         // Navigation - Onayladığı kayıtlar
         public virtual IEnumerable<Advance> Advances { get; set; } = new HashSet<Advance>();

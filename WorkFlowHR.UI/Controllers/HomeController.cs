@@ -39,6 +39,8 @@ namespace WorkFlowHR.UI.Controllers
             {
                 return RedirectToAction("Index", "Home", new { area = "Employee" });
             }
+
+
         }
 
         public IActionResult Privacy()

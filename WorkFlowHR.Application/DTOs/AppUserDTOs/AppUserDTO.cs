@@ -11,4 +11,5 @@ public class AppUserDTO
     public string DisplayName { get; set; } = null!;
     public string Role { get; set; } = null!;
     public string AzureAdObjectId { get; set; } = null!;
+    public byte[]? Image { get; set; }
 }

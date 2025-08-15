@@ -1,0 +1,174 @@
+﻿@model WorkFlowHR.UI.Areas.Manager.Models.LeaveVMs.LeaveDetailsVM
+
+@{
+    ViewData["Title"] = "Leave Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Status rozet rengi
+    var statusText = Model.LeaveStatus.ToString();
+    var statusClass =
+        statusText.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-approved" :
+        statusText.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-rejected" :
+        "status-pending";
+
+    // Süre (gün) hesabı (başlangıç ve bitiş dahil)
+    var span = Model.EndDate.Date - Model.StartDate.Date;
+    var days = Math.Max(1, span.Days + 1);
+}
+
+<div class="details-container card">
+    <div class="card-body">
+        <div class="status-row">
+            <span class="status-pill @statusClass">@statusText</span>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <p class="card-text"><strong>Employee:</strong> @Model.AppUserDisplayName</p>
+        <p class="card-text"><strong>Leave Type:</strong> @Model.LeaveTypeName</p>
+        <p class="card-text"><strong>Start Date:</strong> @Model.StartDate.ToString("dd/MM/yyyy")</p>
+        <p class="card-text"><strong>End Date:</strong> @Model.EndDate.ToString("dd/MM/yyyy")</p>
+        <p class="card-text"><strong>Duration:</strong> @days day(s)</p>
+        <p class="card-text"><strong>Roles:</strong> @Model.Roles</p>
+    </div>
+
+    <div class="card-body">
+        <a asp-area="Manager" asp-controller="Leave" asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .details-container {
+            width: 24rem;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(2, 6, 23, 0.12);
+            text-align: center;
+            position: relative;
+        }
+
+            .details-container .card-text {
+                margin-bottom: 10px;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 10px;
+                color: #0f172a;
+                text-align: left;
+            }
+
+        .status-row {
+            display: flex;
+            justify-content: center;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            letter-spacing: .2px;
+            font-size: .9rem;
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(2,6,23,.12);
+        }
+
+        .status-approved {
+            background: #22c55e;
+        }
+        /* green */
+        .status-rejected {
+            background: #ef4444;
+        }
+        /* red */
+        .status-pending {
+            background: #f59e0b;
+        }
+        /* amber */
+
+        .btn-secondary {
+            background-color: #7978E9;
+            border-color: #7978E9;
+            color: #fff;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            transition: transform .18s ease, box-shadow .18s ease, background-color 0.3s ease;
+        }
+
+            .btn-secondary:hover {
+                background-color: #5c5ab3;
+                border-color: #5c5ab3;
+                transform: translateY(-1px);
+                box-shadow: 0 10px 20px rgba(2,6,23,.18);
+            }
+
+        /* Açılır-kapanır detay alanı (ileri kullanım için, Expense ile uyumlu) */
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            text-align: left;
+        }
+
+            .collapse-content.show {
+                max-height: 500px;
+            }
+
+        .btn-toggle {
+            background-color: transparent;
+            border: none;
+            color: #7978E9;
+            font-size: 1.05em;
+            cursor: pointer;
+            font-weight: 700;
+            transition: color 0.2s ease, transform .1s ease;
+            padding: 0;
+        }
+
+            .btn-toggle:hover {
+                color: #5c5ab3;
+                transform: translateY(-1px);
+            }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Expense detayındakiyle aynı "Show/Hide" mantığını bırakıyoruz (gerekirse aktif edilir)
+        document.addEventListener('DOMContentLoaded', function () {
+            const bodies = document.querySelectorAll('.details-container .card-body');
+            if (bodies.length > 1) {
+                const infoBody = bodies[1]; // içerik bulunan body
+                const toggleButton = document.createElement('button');
+                toggleButton.classList.add('btn-toggle');
+                toggleButton.textContent = 'Show Details';
+
+                const collapseContent = document.createElement('div');
+                collapseContent.classList.add('collapse-content');
+
+                // Paragrafları collapse içine taşı
+                const toMove = Array.from(infoBody.childNodes);
+                toMove.forEach(n => collapseContent.appendChild(n));
+
+                infoBody.appendChild(toggleButton);
+                infoBody.appendChild(collapseContent);
+
+                toggleButton.addEventListener('click', () => {
+                    collapseContent.classList.toggle('show');
+                    toggleButton.textContent = collapseContent.classList.contains('show') ? 'Hide Details' : 'Show Details';
+                });
+            }
+
+            // Back to list – direkt yönlendirme
+            const backBtn = document.querySelector('.btn-secondary[href]');
+            if (backBtn) {
+                backBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    window.location.href = this.getAttribute('href');
+                });
+            }
+        });
+    </script>
+}

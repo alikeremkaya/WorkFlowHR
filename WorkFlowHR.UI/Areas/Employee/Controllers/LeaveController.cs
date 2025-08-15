@@ -19,7 +19,8 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
 
         private readonly ILeaveTypeService _leaveTypeService;
         private readonly ILeaveService _leaveService;
-        private readonly IAppUserService _appUserService;
+        private readonly IAppUserService _userService;
+
         private readonly ILogger<LeaveController> _logger;
 
         public LeaveController(
@@ -30,7 +31,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
         {
             _leaveTypeService = leaveTypeService;
             _leaveService = leaveService;
-            _appUserService = appUserService;
+            _userService = appUserService;
             _logger = logger;
         }
 
@@ -55,7 +56,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (!result.IsSuccess || result.Data == null)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             var vm = result.Data.Adapt<LeaveDetailsVM>();
@@ -67,7 +68,9 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
         {
             var vm = new LeaveCreateVM
             {
-                LeaveTypes = await GetLeaveTypes()
+                LeaveTypes = await GetLeaveTypes(),
+                Managers = await GetManagers(),
+
             };
             return View(vm);
         }
@@ -95,7 +98,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             }
 
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         // DELETE
@@ -105,11 +108,11 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         // UPDATE (GET)
@@ -119,11 +122,12 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (!result.IsSuccess || result.Data == null)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             var vm = result.Data.Adapt<LeaveEditVM>();
             vm.LeaveTypes = await GetLeaveTypes(vm.LeaveTypeId);
+            vm.Managers = await GetManagers(vm.ManagerId);
             return View(vm);
         }
 
@@ -149,7 +153,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             }
 
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         // APPROVE
@@ -159,10 +163,10 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         // REJECT
@@ -172,10 +176,10 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (!result.IsSuccess)
             {
                 await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
             await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
         // ----------------- helpers -----------------
@@ -196,6 +200,25 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
 
             return new SelectList(items, "Value", "Text", selectedId?.ToString());
         }
+        private async Task<SelectList> GetManagers(Guid? selectedId = null)
+        {
+            // Tüm AppUser’ları getir (rol filtrelemek istersen burada yaparsın)
+            var res = await _userService.GetAllAsync();
+            if (!res.IsSuccess || res.Data == null)
+                return new SelectList(Enumerable.Empty<SelectListItem>());
+
+            var items = res.Data
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = string.IsNullOrWhiteSpace(u.DisplayName) ? u.Email : u.DisplayName,
+                    Selected = selectedId.HasValue && u.Id == selectedId.Value
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
+
+            return new SelectList(items, "Value", "Text", selectedId?.ToString());
+        }
 
         private async Task<Guid> ResolveCurrentAppUserIdAsync()
         {
@@ -206,7 +229,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             if (string.IsNullOrWhiteSpace(email))
                 throw new InvalidOperationException("User email claim not found.");
 
-            var user = await _appUserService.GetByEmailAsync(email);
+            var user = await _userService.GetByEmailAsync(email);
             if (!user.IsSuccess || user.Data == null)
                 throw new InvalidOperationException("AppUser not found for current user.");
 

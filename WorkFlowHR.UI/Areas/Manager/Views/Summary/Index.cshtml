@@ -1,0 +1,369 @@
+﻿@model WorkFlowHR.UI.Areas.Manager.Models.SummaryVMs.SummaryViewModel
+
+@{
+    ViewData["Title"] = "Summary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="neo-tabs-wrap">
+    <ul class="neo-tabs">
+        <li>
+            <a href="javascript:void(0);" class="neo-tab-back" title="Back" onclick="history.back()">
+                &#8592;
+            </a>
+        </li>
+        <li><a href="#" class="neo-tab-link active" data-tab="advances">Advances</a></li>
+        <li><a href="#" class="neo-tab-link" data-tab="expenses">Expenses</a></li>
+        <li><a href="#" class="neo-tab-link" data-tab="leaves">Leaves</a></li>
+    </ul>
+</div>
+
+<div id="contentArea">
+    <!-- ADVANCES -->
+    <div id="advances" class="tab-content">
+        <div class="neo-card table-responsive">
+            <table id="advancesTable" class="table table-hover align-middle" style="width:100%">
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Employee</th>
+                    <th>Amount</th>
+                    <th>Advance Date</th>
+                    <th>Status</th>
+                    <th>Roles</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model.Advances)
+                    {
+                        var statusText = a.AdvanceStatus.ToString();
+                        var statusClass =
+                            statusText.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-approved" :
+                            statusText.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-rejected" :
+                            "status-pending";
+
+                            <tr>
+                                <td>
+                                @if (a.Image != null && a.Image.Length > 0)
+                                {
+                                                <img src="data:image/png;base64,@Convert.ToBase64String(a.Image)"
+                                                     class="neo-thumb"
+                                                     alt="Advance Image"
+                                                     data-full="data:image/png;base64,@Convert.ToBase64String(a.Image)" />
+                                }
+                                </td>
+                                <td>@a.AppUserDisplayName</td>
+                                <td>@a.Amount</td>
+                                <td>@a.AdvanceDate.ToShortDateString()</td>
+                                <td><span class="status-pill @statusClass">@statusText</span></td>
+                                <td>@a.Roles</td>
+                                <td>
+                                    <a href="@Url.Action("Details","Advance", new { id = a.Id, area = "Manager" })"
+                                       class="btn neo-btn-info btn-sm">Details</a>
+                                </td>
+                            </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- EXPENSES -->
+    <div id="expenses" class="tab-content" style="display:none;">
+        <div class="neo-card table-responsive">
+            <table id="expensesTable" class="table table-hover align-middle" style="width:100%">
+                <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Employee</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Role</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model.Expenses)
+                    {
+                            <tr>
+                                <td>
+                                @if (e.Image != null && e.Image.Length > 0)
+                                {
+                                                <img src="data:image/png;base64,@Convert.ToBase64String(e.Image)"
+                                                     class="neo-thumb"
+                                                     alt="Expense Image"
+                                                     data-full="data:image/png;base64,@Convert.ToBase64String(e.Image)" />
+                                }
+                                </td>
+                                <td>@e.AppUserDisplayName</td>
+                                <td>
+                                    <span class="text-truncate-2"
+                                          data-bs-toggle="tooltip"
+                                          title="@e.Description">
+                                    @(e.Description?.Length > 60 ? e.Description.Substring(0, 60) + "…" : e.Description)
+                                    </span>
+                                </td>
+                                <td>@e.Amount</td>
+                                <td>@e.Roles</td>
+                                <td>@e.ExpenseDate.ToShortDateString()</td>
+                                <td>
+                                    <a href="@Url.Action("Details","Expense", new { id = e.Id, area = "Manager" })"
+                                       class="btn neo-btn-info btn-sm">Details</a>
+                                </td>
+                            </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- LEAVES -->
+    <div id="leaves" class="tab-content" style="display:none;">
+        <div class="neo-card table-responsive">
+            <table id="leavesTable" class="table table-hover align-middle" style="width:100%">
+                <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Leave Type</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                    @foreach (var l in Model.Leaves)
+                    {
+                        var lStatus = l.LeaveStatus.ToString();
+                        var lClass =
+                            lStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-approved" :
+                            lStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-rejected" :
+                            "status-pending";
+
+                            <tr>
+                                <td>@l.AppUserDisplayName</td>
+                                <td>@l.LeaveTypeName</td>
+                                <td>@l.StartDate.ToShortDateString()</td>
+                                <td>@l.EndDate.ToShortDateString()</td>
+                                <td><span class="status-pill @lClass">@lStatus</span></td>
+                                <td>
+                                    <a href="@Url.Action("Details","Leave", new { id = l.Id, area = "Manager" })"
+                                       class="btn neo-btn-info btn-sm">Details</a>
+                                </td>
+                            </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Image Zoom Modal -->
+<div class="modal fade" id="imgZoomModal" tabindex="-1" aria-labelledby="imgZoomLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content neo-card">
+            <div class="modal-body text-center">
+                <img id="imgZoomTarget" src="" class="img-fluid rounded" alt="Image" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <script>
+            (function () {
+                // Remember selected tab
+                const TAB_KEY = "summary_selected_tab";
+
+                function selectTab(tabId) {
+                    // hide all
+                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                    // show selected
+                    document.getElementById(tabId).style.display = 'block';
+
+                    // active state
+                    document.querySelectorAll('.neo-tab-link').forEach(a => a.classList.remove('active'));
+                    document.querySelector(`.neo-tab-link[data-tab="${tabId}"]`)?.classList.add('active');
+
+                    // init datatable lazily
+                    if (window.jQuery && $.fn.dataTable) {
+                        if (tabId === 'advances' && !$.fn.DataTable.isDataTable('#advancesTable')) initTable('#advancesTable');
+                        if (tabId === 'expenses' && !$.fn.DataTable.isDataTable('#expensesTable')) initTable('#expensesTable');
+                        if (tabId === 'leaves'   && !$.fn.DataTable.isDataTable('#leavesTable'))   initTable('#leavesTable');
+                    }
+
+                    localStorage.setItem(TAB_KEY, tabId);
+                }
+
+                function initTable(sel) {
+                    $(sel).DataTable({
+                        pageLength: 10,
+                        ordering: true,
+                        responsive: true,
+                        language: {
+                            lengthMenu: "Show _MENU_",
+                            search: "Search:",
+                            paginate: { next: "Next", previous: "Prev" },
+                            info: "Showing _START_ to _END_ of _TOTAL_",
+                            infoEmpty: "No records",
+                            emptyTable: "No data available"
+                        }
+                    });
+                }
+
+                // Tab links
+                document.addEventListener('click', function (e) {
+                    const link = e.target.closest('.neo-tab-link');
+                    if (!link) return;
+                    e.preventDefault();
+                    const id = link.getAttribute('data-tab');
+                    selectTab(id);
+                });
+
+                // Open image in modal
+                document.addEventListener('click', function (e) {
+                    const img = e.target.closest('.neo-thumb');
+                    if (!img) return;
+                    const full = img.getAttribute('data-full') || img.src;
+                    const t = document.getElementById('imgZoomTarget');
+                    t.src = full;
+                    const modal = new bootstrap.Modal(document.getElementById('imgZoomModal'));
+                    modal.show();
+                });
+
+                // Tooltips (Bootstrap 5)
+                try {
+                    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+                } catch (err) { /* ignore if bootstrap not present */ }
+
+                // Initial tab (from localStorage or default)
+                const saved = localStorage.getItem(TAB_KEY) || 'advances';
+                selectTab(saved);
+            })();
+        </script>
+}
+
+@section Styles {
+        <style>
+            :root{
+                --brand-a:#7c3aed; /* violet */
+                --brand-b:#06b6d4; /* cyan   */
+                --brand-c:#22d3ee; /* cyan   */
+                --ink:#0f172a;
+                --glass: rgba(255,255,255,.08);
+                --shadow:0 12px 30px rgba(2,6,23,.12);
+                --radius:16px;
+            }
+
+            body { background: #F5F7FF; }
+
+            /* Tabs */
+            .neo-tabs-wrap{
+                margin: 10px 0 16px 0;
+            }
+            .neo-tabs{
+                display:flex;
+                gap:8px;
+                list-style:none;
+                padding:0; margin:0;
+                border-bottom:2px solid #7978E9;
+            }
+            .neo-tabs li{display:flex;align-items:center}
+            .neo-tab-back{
+                display:inline-flex;align-items:center;justify-content:center;
+                width:38px;height:38px;border-radius:999px;
+                text-decoration:none;
+                background: linear-gradient(90deg,var(--brand-a),var(--brand-b),var(--brand-c));
+                color:#fff;font-weight:800;box-shadow:var(--shadow);
+                transition:transform .15s ease;
+            }
+            .neo-tab-back:hover{ transform: translateY(-1px); }
+
+            .neo-tab-link{
+                text-decoration:none;
+                padding:10px 16px;
+                border-radius:12px;
+                font-weight:700; letter-spacing:.2px;
+                color:#7978E9; border:2px solid transparent;
+                transition: all .2s ease;
+            }
+            .neo-tab-link:hover{
+                background:rgba(124,58,237,.08);
+            }
+            .neo-tab-link.active{
+                color:#fff; border-color:transparent;
+                background: linear-gradient(90deg,var(--brand-a),var(--brand-b),var(--brand-c));
+                box-shadow:var(--shadow);
+            }
+
+            /* Card shell */
+            .neo-card{
+                border-radius: var(--radius);
+                border:1px solid rgba(2,6,23,.06);
+                background: #fff;
+                box-shadow: var(--shadow);
+                padding: 8px 10px;
+            }
+
+            /* Thumbs */
+            .neo-thumb{
+                width:44px;height:44px;object-fit:cover;
+                border-radius:10px;border:1px solid rgba(2,6,23,.08);
+                display:block;
+                cursor:pointer;
+                transition: transform .12s ease, box-shadow .12s ease;
+            }
+            .neo-thumb:hover{
+                transform: translateY(-1px);
+                box-shadow: 0 8px 18px rgba(2,6,23,.14);
+            }
+
+            /* Status pills */
+            .status-pill{
+                display:inline-block;padding:6px 10px;border-radius:999px;
+                color:#fff;font-weight:700;font-size:.82rem;
+                box-shadow:0 6px 16px rgba(2,6,23,.12);
+            }
+            .status-approved{ background:#22c55e; } /* green */
+            .status-rejected{ background:#ef4444; } /* red   */
+            .status-pending{  background:#f59e0b; } /* amber */
+
+            /* Buttons */
+            .neo-btn-info{
+                background: linear-gradient(90deg,var(--brand-b),var(--brand-c));
+                color:#fff;border:none;
+                border-radius:999px;font-weight:600;letter-spacing:.2px;
+                padding:6px 12px;
+                box-shadow:0 10px 20px rgba(2,6,23,.12);
+            }
+            .neo-btn-info:hover{
+                color:#fff;
+                transform: translateY(-1px);
+                box-shadow:0 14px 28px rgba(2,6,23,.16);
+            }
+
+            /* Tables */
+            .table thead th{
+                background-color:#7978E9;color:#fff;border-bottom:2px solid #7978E9;
+                vertical-align:middle;
+            }
+            .table td, .table th{ vertical-align:middle; }
+
+            /* Truncate helper */
+            .text-truncate-2{
+                display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+                overflow:hidden;
+                max-width:420px;
+            }
+
+            /* DataTables theming tweaks */
+            .dataTables_wrapper .dataTables_filter input{
+                border:1px solid #7978E9;border-radius:10px;padding:4px 8px; outline:none;
+            }
+            .dataTables_wrapper .dataTables_length select{
+                border:1px solid #7978E9;border-radius:10px;padding:2px 6px; outline:none;
+            }
+        </style>
+}

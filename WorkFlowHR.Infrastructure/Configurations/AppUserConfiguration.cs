@@ -13,6 +13,7 @@ public class AppUserConfiguration:BaseUserConfiguration<AppUser>
         builder.HasIndex(u => u.Email).IsUnique();
 
         builder.Property(u => u.AzureAdObjectId).IsRequired();
+        builder.Property(u => u.Image).IsRequired(false);
 
         base.Configure(builder);
 

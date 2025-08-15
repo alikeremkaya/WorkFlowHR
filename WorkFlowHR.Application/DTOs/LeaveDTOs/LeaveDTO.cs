@@ -12,12 +12,12 @@ namespace WorkFlowHR.Application.DTOs.LeaveDTOs
         public Guid Id { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-
+        public string Description { get; set; }
         public Guid LeaveTypeId { get; set; }
-        public string LeaveType { get; set; } = null!;
+        public string LeaveTypeName { get; set; } = null!;
 
         public Guid AppUserId { get; set; }
-        public string AppUserName { get; set; } = "";
+        public string AppUserDisplayName { get; set; } = "";
 
         public Guid? ApproverAppUserId { get; set; }
         public string? ApproverName { get; set; }

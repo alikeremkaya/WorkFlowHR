@@ -148,6 +148,27 @@ namespace WorkFlowHR.Application.Services.AppUserServices
             var dto = existing.Adapt<AppUserDTO>();
             return new SuccessDataResult<AppUserDTO>(dto, "User retrieved by email.");
         }
+
+        public async Task<Result> UpdatePhotoAsync(AppUserUpdatePhotoDTO dto)
+        {
+            try
+            {
+                var entity = await _repo.GetByIdAsync(dto.Id);
+                if (entity == null)
+                    return new ErrorResult("User not found.");
+
+                entity.Image = dto.Image;
+                await _repo.UpdateAsync(entity);
+                await _repo.SaveChangesAsync();
+
+                return new SuccessResult("Photo updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user photo. Id: {Id}", dto.Id);
+                return new ErrorResult("Error updating user photo.");
+            }
+        }
     }
 }
 

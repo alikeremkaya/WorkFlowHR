@@ -89,11 +89,11 @@
 <form id="advanceCreateForm" asp-action="Create" method="post" enctype="multipart/form-data" class="form-custom">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    @* <div class="form-group">
+    <div class="form-group">
         <label asp-for="NewImage" class="control-label">New Image</label>
         <input asp-for="NewImage" type="file" class="form-control" required />
         <span asp-validation-for="NewImage" class="text-danger"></span>
-    </div> *@
+    </div>
 
     <div class="form-group">
         <label asp-for="Amount" class="control-label">Amount</label>
@@ -107,9 +107,13 @@
         <span asp-validation-for="AdvanceDate" class="text-danger"></span>
     </div>
 
-    <input asp-for="ManagerId" type="hidden" />
-    <input asp-for="ManagerFirstName" type="hidden" />
-    <input asp-for="ManagerLastName" type="hidden" />
+    <div class="form-group">
+        <label asp-for="ManagerId" class="control-label">Employee</label>
+        <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control" required>
+            <option value="">--- Select Employee ---</option>
+        </select>
+        <span asp-validation-for="ManagerId" class="text-danger"></span>
+    </div>
 
     <div class="form-group text-center">
         <input type="submit" value="Create" class="btn btn-primary" />

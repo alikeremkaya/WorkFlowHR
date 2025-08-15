@@ -1,78 +1,85 @@
 ﻿@model WorkFlowHR.UI.Areas.Manager.Models.LeaveVMs.LeaveEditVM
-
 @{
-    ViewData["Title"] = "Update";
-
+    ViewData["Title"] = "Update Leave";
 }
 
+<div class="neo-form-card">
+    <div class="neo-form-header">
+        <div class="neo-dot"></div>
+        <div class="neo-dot"></div>
+        <div class="neo-dot"></div>
+        <span>Update Leave</span>
+    </div>
 
-@using WorkFlowHR.Domain.Enums
+    <form id="leaveUpdateForm" asp-action="Update" method="post" class="neo-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
+        <!-- Kimlik & Statü kaybını önle -->
+        <input asp-for="Id" type="hidden" />
+        <input asp-for="LeaveStatus" type="hidden" />
+        <input asp-for="AppUserId" type="hidden" />
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h1 class="custom-page-title">Update Leave</h1>
-            <form id="leaveUpdateForm" asp-action="Update" method="post" class="form-custom">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-                <div class="form-group">
-                    <label asp-for="StartDate" class="control-label">Start Date</label>
-                    <input asp-for="StartDate" type="date" class="form-control" required />
-                    <span asp-validation-for="StartDate" class="text-danger"></span>
-                </div>
-
-                <div class="form-group">
-                    <label asp-for="EndDate" class="control-label">End Date</label>
-                    <input asp-for="EndDate" type="date" class="form-control" required />
-                    <span asp-validation-for="EndDate" class="text-danger"></span>
-                </div>
-
-                <div class="form-group row">
-                    <label asp-for="LeaveTypeId" class="col-sm-3 col-form-label">Leave Type</label>
-                    <div class="col-sm-9">
-                        <select asp-for="LeaveTypeId" asp-items="@Model.LeaveTypes" class="form-control" required>
-                            <option value="">--- Select ---</option>
-                        </select>
-                        <span asp-validation-for="LeaveTypeId" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="form-group row">
-                    <label asp-for="ManagerId" class="col-sm-3 col-form-label">Employee</label>
-                    <div class="col-sm-9">
-                        <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control" required>
-                            <option value="">--- Select ---</option>
-                        </select>
-                        <span asp-validation-for="ManagerId" class="text-danger"></span>
-                    </div>
-                </div>
-
-                <div class="form-group text-center">
-                    <input type="submit" value="Save" class="btn btn-primary" />
-                </div>
-            </form>
+        <div class="mb-3">
+            <label asp-for="StartDate" class="form-label neo-label">Start Date</label>
+            <input asp-for="StartDate"
+                   type="date"
+                   class="form-control neo-input"
+                   value="@(Model.StartDate == default ? "" : Model.StartDate.ToString("yyyy-MM-dd"))"
+                   required />
+            <span asp-validation-for="StartDate" class="text-danger small"></span>
         </div>
+
+        <div class="mb-3">
+            <label asp-for="EndDate" class="form-label neo-label">End Date</label>
+            <input asp-for="EndDate"
+                   type="date"
+                   class="form-control neo-input"
+                   value="@(Model.EndDate == default ? "" : Model.EndDate.ToString("yyyy-MM-dd"))"
+                   required />
+            <span asp-validation-for="EndDate" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="LeaveTypeId" class="form-label neo-label">Leave Type</label>
+            <select asp-for="LeaveTypeId" asp-items="@Model.LeaveTypes" class="form-control neo-input" required>
+                <option value="">--- Select ---</option>
+            </select>
+            <span asp-validation-for="LeaveTypeId" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-4">
+            <label asp-for="ManagerId" class="form-label neo-label">Employee</label>
+            <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control neo-input" required>
+                <option value="">--- Select ---</option>
+            </select>
+            <span asp-validation-for="ManagerId" class="text-danger small"></span>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn neo-btn-gradient">Save</button>
+        </div>
+    </form>
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="btn neo-btn-secondary">Back to List</a>
     </div>
 </div>
 
-<div class="container mt-3 text-center">
-    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
-</div>
-
 @section Scripts {
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation/1.19.3/jquery.validate.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
-        $(document).ready(function () {
-            $('#leaveUpdateForm').validate({
+        (function bindLeaveUpdate(){
+            if (window.__leaveUpdateBound) return; window.__leaveUpdateBound = true;
+
+            const $form = $('#leaveUpdateForm');
+            if (!$form.length) return;
+
+            $form.validate({
                 errorClass: 'text-danger',
                 validClass: 'text-success',
-                errorPlacement: function (error, element) {
-                    error.insertAfter(element);
-                },
+                errorPlacement: function (error, element) { error.insertAfter(element); },
                 messages: {
                     StartDate: "Lütfen bu alanı doldurun.",
                     EndDate: "Lütfen bu alanı doldurun.",
@@ -80,133 +87,135 @@
                     ManagerId: "Lütfen bu alanı doldurun."
                 },
                 submitHandler: function (form) {
+                    const startVal = $('#StartDate').val();
+                    const endVal = $('#EndDate').val();
+
+                    if (startVal && endVal) {
+                        const startDate = new Date(startVal);
+                        const endDate = new Date(endVal);
+
+                        if (endDate <= startDate) {
+                            const endEl = document.getElementById('EndDate');
+                            endEl.setCustomValidity('End date must be greater than start date.');
+                            endEl.reportValidity();
+                            return false;
+                        }
+                    }
+
                     $.ajax({
                         type: $(form).attr('method'),
                         url: $(form).attr('action'),
                         data: $(form).serialize(),
                         success: function (response) {
-                            if (response.success) {
+                            if (response && response.success) {
                                 window.location.href = response.redirectUrl;
-                            } else {
+                            } else if (response && response.errors) {
                                 $.each(response.errors, function (key, value) {
-                                    var errorElement = $('[name="' + key + '"]').next('.text-danger');
-                                    errorElement.text(value);
+                                    var $err = $('[name="' + key + '"]').next('.text-danger');
+                                    $err.text(value);
                                 });
+                            } else {
+                                location.reload();
                             }
+                        },
+                        error: function () {
+                            alert("An unexpected error occurred.");
                         }
                     });
-                    return false; // prevent normal form submission
+                    return false;
                 }
             });
-        });
+
+            $(document).on('change', '#StartDate,#EndDate', function(){
+                this.setCustomValidity('');
+            });
+        })();
     </script>
 }
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation/1.19.3/jquery.validate.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.11/jquery.validate.unobtrusive.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('#leaveUpdateForm').on('submit', function (event) {
-            var startDate = new Date($('#StartDate').val());
-            var endDate = new Date($('#EndDate').val());
 
-            if (endDate <= startDate) {
-                var endDateInput = document.getElementById('EndDate');
-                endDateInput.setCustomValidity('End date must be greater than start date.');
-                endDateInput.reportValidity();
-                event.preventDefault(); // prevent form submission
-            } else {
-                // Clear the custom error if dates are valid
-                document.getElementById('EndDate').setCustomValidity('');
-            }
-        });
-        // Şu anki tarih ve saatten küçük olmamalı
-        if (endDate <= now) {
-            event.preventDefault();
-            alert('End Date must be later than the current date and time');
-            return; // İlgili hata mesajını göster ve işleme devam etme
-        }
-
-        // Clear custom validity when the date inputs are changed
-        $('#StartDate, #EndDate').on('change', function () {
-            var endDateInput = document.getElementById('EndDate');
-            endDateInput.setCustomValidity('');
-        });
-    });
-</script>
 <style>
-    body {
-        background: #eee;
+    .neo-form-card {
+        background: rgba(255,255,255,.95);
+        border: 1px solid rgba(2,6,23,.08);
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(2,6,23,.10);
+        padding: 18px 16px 22px 16px;
+        max-width: 820px;
+        margin: 42px auto;
     }
 
-    .custom-page-title {
-        color: #7978E9;
-        text-align: center;
-        margin-bottom: 30px;
-        font-size: 2em;
+    .neo-form-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
+        border: 1px solid rgba(2,6,23,.06);
+        font-weight: 700;
+        color: #0f172a;
     }
 
-    .container {
-        margin-top: 50px;
+    .neo-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: #7c3aed;
+        box-shadow: 0 0 0 3px rgba(124,58,237,.15) inset;
     }
 
-    .form-custom {
-        background-color: white;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        padding: 20px;
+    .neo-label {
+        font-weight: 600;
+        color: #0f172a;
     }
 
-    .form-group {
-        margin-bottom: 20px;
+    .neo-input {
+        border-radius: 12px;
+        border: 1px solid rgba(2,6,23,.15);
+        background: rgba(255,255,255,.95);
+        transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
     }
 
-    .control-label {
-        font-weight: bold;
-        color: #7978E9;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 8px;
-        font-size: 1em;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-    }
-
-    .btn {
-        text-decoration: none;
-        font-weight: bold;
-        padding: 10px 20px;
-        border-radius: 25px;
-        display: inline-block;
-        transition: background-color 0.3s ease;
-    }
-
-    .btn-primary {
-        background-color: #7978E9;
-        border: 1px solid #7978E9;
-        color: white;
-    }
-
-        .btn-primary:hover {
-            background-color: #4b49ac;
-            border: 1px solid #4b49ac;
+        .neo-input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15);
+            transform: translateY(-1px);
         }
 
-    .btn-secondary {
-        background-color: #6C757D;
-        border: 1px solid #6C757D;
-        color: white;
+    .neo-btn-gradient {
+        background: linear-gradient(90deg,#06b6d4,#22d3ee);
+        color: #fff !important;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: .2px;
+        padding: 10px 18px;
+        box-shadow: 0 10px 20px rgba(2,6,23,.18);
+        transition: transform .15s ease, box-shadow .15s ease;
     }
 
-        .btn-secondary:hover {
-            background-color: #5A6369;
-            border: 1px solid #5A6369;
+        .neo-btn-gradient:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(2,6,23,.22);
         }
 
-    .text-danger {
-        font-size: 0.875em;
+    .neo-btn-secondary {
+        background: rgba(2,6,23,.06);
+        color: #0f172a;
+        border: none;
+        border-radius: 999px;
+        font-weight: 600;
+        padding: 8px 16px;
+        transition: background .15s ease, transform .1s ease;
+    }
+
+        .neo-btn-secondary:hover {
+            background: rgba(2,6,23,.10);
+            transform: translateY(-1px);
+        }
+
+    .text-danger.small {
+        font-size: .85rem;
     }
 </style>
