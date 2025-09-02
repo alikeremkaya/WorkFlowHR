@@ -17,13 +17,12 @@ namespace WorkFlowHR.UI.Controllers
         {
             _logger = logger;
         }
+       
 
-        // Root’a gelen kullanýcýyý rolüne göre Manager veya Employee area’sýna yönlendirir
         public IActionResult Index()
         {
             if (!User.Identity.IsAuthenticated)
             {
-                // OpenID Connect challenge: kullanýcýyý Microsoft’a yönlendir
                 return Challenge(
                     new AuthenticationProperties { RedirectUri = "/" },
                     OpenIdConnectDefaults.AuthenticationScheme);

@@ -22,26 +22,24 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             _mapper = mapper;
         }
 
-        // GET: /Manager/AppUser
+        
         public async Task<IActionResult> Index()
         {
             var result = await _userService.GetAllAsync();
             if (!result.IsSuccess)
                 return View("Error", result.Messages);
 
-            // DTO listesi → VM listesi
             var vmList = result.Data.Adapt<List<AppUserListVM>>();
             return View(vmList);
         }
 
-        // GET: /Manager/AppUser/Create
+        
         [HttpGet]
         public IActionResult Create()
         {
             return View(new AppUserCreateVM());
         }
 
-        // POST: /Manager/AppUser/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(AppUserCreateVM vm)
@@ -59,7 +57,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
       
 
-        // GET: /Manager/AppUser/Edit/{id}
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -72,7 +69,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             return View(vm);
         }
 
-        // POST: /Manager/AppUser/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AppUserEditVM vm)

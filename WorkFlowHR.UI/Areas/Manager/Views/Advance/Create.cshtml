@@ -1,293 +1,203 @@
 ﻿@model WorkFlowHR.UI.Areas.Manager.Models.AdvanceVMs.AdvanceCreateVM
 
 @{
-    ViewData["Title"] = "Create Advance";
+    Layout = null;
 }
 
-<!-- Neo modal body -->
-<div class="neo-form-card">
-    <div class="neo-form-header">
-        <div class="neo-dot"></div>
-        <div class="neo-dot"></div>
-        <div class="neo-dot"></div>
-        <span>Create Advance</span>
+<form id="advanceCreateForm" asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <h2 class="form-title">Create Advance for Employee</h2>
+    <p class="form-subtitle">Please select an employee and fill out the advance details below.</p>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+    <div class="form-group">
+        <label asp-for="ManagerId" class="form-label">Select Employee</label>
+        <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control" required>
+            <option value="" disabled selected>--- Please select an employee ---</option>
+        </select>
+        <span asp-validation-for="ManagerId" class="text-danger small-text"></span>
     </div>
 
-    <form id="advanceCreateForm" asp-action="Create" method="post" enctype="multipart/form-data" class="neo-form">
-        @Html.AntiForgeryToken()
-
-        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
-        <!-- File -->
-        <div class="mb-3">
-            <label asp-for="NewImage" class="form-label neo-label">New Image</label>
-            <div class="neo-file-drop" tabindex="0" role="button" aria-label="Upload receipt image">
-                <input asp-for="NewImage" type="file" accept="image/*" class="neo-file-input" />
-                <div class="neo-file-hint">
-                    <div class="neo-file-icon">📎</div>
-                    <div>
-                        <div class="neo-file-title">Click to upload</div>
-                        <div class="neo-file-sub">PNG/JPG, max ~5MB</div>
-                    </div>
-                </div>
-            </div>
-            <div id="fileName" class="text-muted mt-1 small"></div>
-            <span asp-validation-for="NewImage" class="text-danger small"></span>
-        </div>
-
-        <!-- Amount -->
-        <div class="mb-3">
-            <label asp-for="Amount" class="form-label neo-label">Amount</label>
-            <input asp-for="Amount" class="form-control neo-input" required />
-            <span asp-validation-for="Amount" class="text-danger small"></span>
-        </div>
-
-        <!-- Date -->
-        <div class="mb-3">
-            <label asp-for="AdvanceDate" class="form-label neo-label">Advance Date</label>
-            <input id="AdvanceDate" asp-for="AdvanceDate" type="date" class="form-control neo-input" required />
-            <span asp-validation-for="AdvanceDate" class="text-danger small"></span>
-        </div>
-
-        <!-- Employee (ManagerId alanı) -->
-        <div class="mb-4">
-            <label asp-for="ManagerId" class="form-label neo-label">Employee</label>
-            <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control neo-input" required>
-                <option value="">--- Select Employee ---</option>
-            </select>
-            <span asp-validation-for="ManagerId" class="text-danger small"></span>
-        </div>
-
-        <div class="d-grid">
-            <button type="submit" class="btn neo-btn-gradient">Create</button>
-        </div>
-    </form>
-
-    <div class="text-center mt-3">
-        <a asp-action="Index" class="btn neo-btn-secondary">Back to List</a>
+    <div class="form-group">
+        <label asp-for="Amount" class="form-label">Amount (₺)</label>
+        <input asp-for="Amount" type="number" step="0.01" min="0.01" class="form-control" placeholder="e.g., 2500.00" required />
+        <span asp-validation-for="Amount" class="text-danger small-text"></span>
     </div>
-</div>
 
-<!-- Inline scripts so this works when loaded into a modal via AJAX -->
+    <div class="form-group">
+        <label asp-for="AdvanceDate" class="form-label">Request Date</label>
+        <input asp-for="AdvanceDate" type="date" class="form-control" required />
+        <span asp-validation-for="AdvanceDate" class="text-danger small-text"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="NewImage" class="form-label">Attachment (Optional)</label>
+        <input asp-for="NewImage" type="file" accept="image/png, image/jpeg" class="form-control" />
+        <div class="d-flex align-items-center gap-3 mt-2">
+            <img id="advanceImgPreview" alt="Image Preview" style="display:none; width:80px; height:80px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--border-color);" />
+            <div id="advanceFileName" class="text-muted small-text"></div>
+        </div>
+        <span asp-validation-for="NewImage" class="text-danger small-text"></span>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" class="btn btn-secondary-custom" onclick="closeModal('createModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary-custom">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+            Create Advance
+        </button>
+    </div>
+</form>
+
 <script>
     (function () {
         const $form = $('#advanceCreateForm');
-        if (!$form.length || $form.data('bound')) return;
-        $form.data('bound', true);
+        if ($form.data('initialized')) return;
+        $form.data('initialized', true);
 
-        // Optional: use jQuery Validate if available; otherwise fall back to HTML5 + custom
-        if ($.fn && $.fn.validate) {
-            $form.validate({
-                errorClass: 'text-danger',
-                validClass: 'text-success',
-                errorPlacement: function (error, element) { error.insertAfter(element); },
-                messages: {
-                    NewImage: "Lütfen bu alanı doldurun.",
-                    Amount: "Lütfen bu alanı doldurun.",
-                    AdvanceDate: "Lütfen bu alanı doldurun.",
-                    ManagerId: "Lütfen bu alanı doldurun."
-                },
-                submitHandler: function (form) {
-                    return submitAdvance(form);
-                }
-            });
-        }
-
-        // Always bind submit (covers both validate and non-validate cases)
         $form.on('submit', function (e) {
-            // If jQuery Validate is present, it will call submitHandler; avoid double-post
-            if ($.fn && $.fn.validate) return;
             e.preventDefault();
-            submitAdvance(this);
-        });
-
-        function submitAdvance(form) {
-            // Client-side date guard
-            const el = document.getElementById('AdvanceDate');
-            if (el) {
-                const chosen = new Date(el.value);
-                const now = new Date();
-                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                if (chosen < today) {
-                    el.setCustomValidity('Start date must be later than the current date.');
-                    el.reportValidity();
-                    return false;
-                } else {
-                    el.setCustomValidity('');
-                }
+            const form = this;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
             }
 
+            const $submitButton = $(form).find('button[type="submit"]');
+            $submitButton.prop('disabled', true).text('Saving...');
+
+            const formData = new FormData(form);
             $.ajax({
-                type: $(form).attr('method'),
-                url: $(form).attr('action'),
-                data: new FormData(form),
+                type: 'POST',
+                url: '@Url.Action("Create", "Advance", new { area = "Manager" })',
+                data: formData,
                 contentType: false,
                 processData: false,
-                success: function (response) {
-                    if (response && response.success) {
-                        window.location.href = response.redirectUrl;
-                    } else if (response && response.errors) {
-                        $.each(response.errors, function (key, value) {
-                            var $err = $('[name="' + key + '"]').next('.text-danger');
-                            $err.text(value);
-                        });
-                    } else {
-                        // Fallback: controller might return a full view
-                        location.reload();
-                    }
+                headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+                success: function () {
+                    swal("Success!", "The advance request has been created.", "success")
+                        .then(() => location.reload());
                 },
-                error: function () {
-                    alert("An unexpected error occurred.");
+                error: function (xhr) {
+                    $submitButton.prop('disabled', false).html('<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Create Advance');
+                    let msg = "An unexpected error occurred.";
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                       msg = Object.values(xhr.responseJSON.errors).join("\n");
+                    }
+                    swal("Error!", msg, "error");
                 }
             });
-            return false;
-        }
+        });
 
-        // File input UX: clicking drop area opens file picker
-        $form.on('click keydown', '.neo-file-drop', function (e) {
-            if (e.type === 'click' || (e.type === 'keydown' && (e.key === 'Enter' || e.key === ' '))) {
-                $(this).find('input[type="file"]').trigger('click');
-                e.preventDefault();
+        $form.on('change', 'input[type="file"][name="NewImage"]', function () {
+            const file = this.files[0];
+            const $preview = $('#advanceImgPreview');
+            const $fileName = $('#advanceFileName');
+            if (!file) {
+                $preview.hide().attr('src', '');
+                $fileName.text('');
+                return;
+            }
+            $fileName.text(file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)');
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => $preview.attr('src', e.target.result).show();
+                reader.readAsDataURL(file);
+            } else {
+                $preview.hide();
             }
         });
-
-        // Show selected filename
-        $form.on('change', 'input[type="file"][name="NewImage"]', function () {
-            const file = this.files && this.files[0];
-            $('#fileName').text(file ? file.name : '');
-        });
-
-        // Clear custom validity on date change
-        $form.on('change', '#AdvanceDate', function () { this.setCustomValidity(''); });
     })();
 </script>
 
 <style>
-   
-    .neo-form-card {
-        background: rgba(255,255,255,.9);
-        border: 1px solid rgba(2,6,23,.08);
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(2,6,23,.12);
-        padding: 18px 16px 22px 16px;
-    }
-
-    /* Header bar */
-    .neo-form-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
-        border: 1px solid rgba(2,6,23,.06);
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .neo-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124,58,237,.15) inset;
-    }
-
-    /* Labels & inputs */
-    .neo-label {
+    .form-title {
+        font-size: 1.5rem;
         font-weight: 600;
-        color: #0f172a;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
     }
 
-    .neo-input {
-        border-radius: 12px;
-        border: 1px solid rgba(2,6,23,.15);
-        background: rgba(255,255,255,.9);
-        transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
+    .form-subtitle {
+        font-size: 1rem;
+        color: var(--secondary-color);
+        margin-top: 0;
+        margin-bottom: 1.5rem;
     }
 
-        .neo-input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15);
-            transform: translateY(-1px);
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 0.9rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-color);
+        background-color: var(--bg-white);
+        border: 1px solid var(--border-color);
+        appearance: none;
+        border-radius: var(--radius-sm);
+        transition: all .15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
         }
 
-    /* File drop */
-    .neo-file-drop {
+    .small-text {
+        font-size: 0.875em;
+    }
+
+    .form-actions {
         display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-        border: 1.5px dashed rgba(2,6,23,.18);
-        background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(248,250,252,.85));
-        border-radius: 14px;
-        padding: 14px 12px;
-        position: relative;
-        transition: border-color .2s ease, box-shadow .2s ease, transform .08s ease;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
     }
 
-        .neo-file-drop:hover {
-            border-color: #06b6d4;
-            transform: translateY(-1px);
-        }
-
-    .neo-file-input {
-        position: absolute;
-        inset: 0;
-        opacity: 0;
+    .btn-secondary-custom {
+        background-color: #f8f9fa;
+        color: #212529;
+        font-weight: 500;
+        border: 1px solid #dee2e6;
+        border-radius: var(--radius-sm);
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: all .15s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
     }
 
-    .neo-file-icon {
-        font-size: 20px;
-        line-height: 1;
-    }
-
-    .neo-file-title {
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    .neo-file-sub {
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    /* Buttons */
-    .neo-btn-gradient {
-        background: linear-gradient(90deg,#06b6d4,#22d3ee);
-        color: #fff !important;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: .2px;
-        padding: 10px 18px;
-        box-shadow: 0 10px 20px rgba(2,6,23,.18);
-        transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-        .neo-btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 28px rgba(2,6,23,.20);
+        .btn-secondary-custom:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
         }
 
-    .neo-btn-secondary {
-        background: rgba(2,6,23,.06);
-        color: #0f172a;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        padding: 8px 16px;
-        transition: background .15s ease, transform .1s ease;
-    }
-
-        .neo-btn-secondary:hover {
-            background: rgba(2,6,23,.10);
-            transform: translateY(-1px);
-        }
-
-    .text-danger.small {
-        font-size: .85rem;
+    .alert-danger {
+        color: #842029;
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+        padding: 1rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
     }
 </style>

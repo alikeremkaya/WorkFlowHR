@@ -102,18 +102,28 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             return RedirectToAction("Index");
         }
 
-      
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _leaveService.DeleteAsync(id);
-            if (!result.IsSuccess)
+            try
             {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
-            }
+                var result = await _leaveTypeService.DeleteAsync(id);
 
-            await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction("Index");
+                if (!result.IsSuccess)
+                {
+
+                    return Json(new { success = false, message = result.Messages });
+                }
+
+                return Json(new { success = true, message = result.Messages });
+            }
+            catch (Exception ex)
+            {
+
+                return Json(new { success = false, message = "An unexpected error occurred." });
+            }
         }
 
 
@@ -129,7 +139,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
             var vm = result.Data.Adapt<LeaveEditVM>();
 
-            // KRİTİK: kayıt AppUserId taşıyor; formdaki dropdown ManagerId
             vm.ManagerId = result.Data.AppUserId;
 
             vm.LeaveTypes = await GetLeaveTypes(vm.LeaveTypeId);
@@ -221,7 +230,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
         private async Task<SelectList> GetManagers(Guid? selectedId = null)
         {
-            // AppUser servisinizle tutarlı olun
             var res = await _userService.GetAllAsync();
             if (!res.IsSuccess || res.Data == null)
                 return new SelectList(Enumerable.Empty<SelectListItem>());

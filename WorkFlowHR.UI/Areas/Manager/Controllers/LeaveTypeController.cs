@@ -62,19 +62,27 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
                 return RedirectToAction("Index");
             }
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var result = await _leaveTypeService.DeleteAsync(id);
-
-            if (!result.IsSuccess)
+            try
             {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
+                var result = await _leaveTypeService.DeleteAsync(id);
+
+                if (!result.IsSuccess)
+                {
+                    
+                    return Json(new { success = false, message = result.Messages });
+                }
+
+                return Json(new { success = true, message = result.Messages });
             }
-
-            await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction("Index");
-
+            catch (Exception ex)
+            {
+               
+                return Json(new { success = false, message = "An unexpected error occurred." });
+            }
         }
         public async Task<IActionResult> Update(Guid id)
         {

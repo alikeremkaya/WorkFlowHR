@@ -15,7 +15,7 @@ namespace WorkFlowHR.Domain.Entities
 
         [Required]
         [StringLength(50)]
-        public string Role { get; set; } = null!; // "Manager" veya "Employee"
+        public string Role { get; set; } = null!; 
 
         [Required]
         [StringLength(100)]
@@ -23,7 +23,6 @@ namespace WorkFlowHR.Domain.Entities
 
         public byte[]? Image { get; set; }
 
-        // Navigation - Onayladığı kayıtlar
         public virtual IEnumerable<Advance> Advances { get; set; } = new HashSet<Advance>();
         public virtual IEnumerable<Expense> Expenses { get; set; } = new HashSet<Expense>();
         public virtual IEnumerable<Leave> Leaves { get; set; } = new HashSet<Leave>();

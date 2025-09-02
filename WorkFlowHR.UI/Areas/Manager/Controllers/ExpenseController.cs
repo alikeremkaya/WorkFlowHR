@@ -76,7 +76,7 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             {
                 using var ms = new MemoryStream();
                 await file.CopyToAsync(ms);
-                dto.Image = ms.ToArray();   // <-- sadece byte[] gönderiyoruz
+                dto.Image = ms.ToArray();   
             }
 
            
@@ -128,7 +128,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
                 dto.Image = ms.ToArray();
             }
 
-            // AppUserId’yi koru
             if (dto.AppUserId == Guid.Empty)
                 dto.AppUserId = await ResolveCurrentAppUserIdAsync();
 
@@ -146,26 +145,32 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            if (ModelState.IsValid)
+            try
             {
                 var result = await _expenseService.DeleteAsync(id);
-                if (!result.IsSuccess)
-                {
-                    await Console.Out.WriteLineAsync(result.Messages);
-                    return RedirectToAction("Index");
-                }
 
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
+                if (result.IsSuccess)
+                {
+                    return Json(new { success = true, message = "The expense request has been deleted." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.Messages ?? "An error occurred while deleting the expense request." });
+                }
             }
-            return RedirectToAction("Index", "Home");
+            catch (Exception ex)
+            {
+
+                return Json(new { success = false, message = "An unexpected server error occurred: " + ex.Message });
+            }
         }
 
         private async Task<SelectList> GetManagers(Guid? selectedId = null)
         {
-            // Tüm AppUser’ları getir (rol filtrelemek istersen burada yaparsın)
             var res = await _userService.GetAllAsync();
             if (!res.IsSuccess || res.Data == null)
                 return new SelectList(Enumerable.Empty<SelectListItem>());

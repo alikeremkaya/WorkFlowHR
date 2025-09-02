@@ -42,7 +42,6 @@ namespace WorkFlowHR.Application.Services.ExpenseServices
                 await _expenseRepository.AddAsync(entity);
                 await _expenseRepository.SaveChangesAsync();
 
-                // Sadece isteği oluşturan kullanıcıya bilgi maili
                 var user = await _userService.GetByIdAsync(entity.AppUserId);
                 if (user?.Data != null && !string.IsNullOrWhiteSpace(user.Data.Email))
                 {
@@ -72,7 +71,6 @@ namespace WorkFlowHR.Application.Services.ExpenseServices
             await _expenseRepository.DeleteAsync(entity);
             await _expenseRepository.SaveChangesAsync();
 
-            // Kullanıcıya bilgilendirme
             if (entity.AppUser != null && !string.IsNullOrWhiteSpace(entity.AppUser.Email))
             {
                 await _mailService.SendMailAsync(new MailDTO
@@ -88,9 +86,8 @@ namespace WorkFlowHR.Application.Services.ExpenseServices
 
         public async Task<IDataResult<List<ExpenseListDTO>>> GetAllAsync()
         {
-            var expenses = await _expenseRepository.GetAllAsync(true); // Sadece tracking parametresi gönderildi  
+            var expenses = await _expenseRepository.GetAllAsync(true); 
 
-            // Verileri CreatedDate'e göre sıralıyoruz  
             var sortedExpenses = expenses.OrderBy(x => x.CreatedDate).ToList();
 
             if (sortedExpenses.Count <= 0)
@@ -104,17 +101,15 @@ namespace WorkFlowHR.Application.Services.ExpenseServices
             {
                 var expenseListDTO = expense.Adapt<ExpenseListDTO>();
 
-                // Manager rol bilgisi ve diğer gerekli bilgileri DTO'ya ekleyin  
                 expenseListDTO.AppUserDisplayName = expense.AppUser.FirstName;
 
-                // Convert the string Role to the Roles enum  
                 if (Enum.TryParse<Roles>(expense.AppUser.Role, out var role))
                 {
                     expenseListDTO.Roles = role;
                 }
                 else
                 {
-                    expenseListDTO.Roles = Roles.Employee; // Default value if parsing fails  
+                    expenseListDTO.Roles = Roles.Employee;  
                 }
 
                 expenseListDTOs.Add(expenseListDTO);

@@ -65,7 +65,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
             var dto = vm.Adapt<AdvanceCreateDTO>();
 
-            // IFormFile -> byte[]
             if (vm.NewImage != null && vm.NewImage.Length > 0)
             {
                 using var ms = new MemoryStream();
@@ -86,21 +85,28 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             TempData["Success"] = "Advance created.";
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            if (ModelState.IsValid)
+            try
             {
                 var result = await _advanceService.DeleteAsync(id);
-                if (!result.IsSuccess)
-                {
-                    await Console.Out.WriteLineAsync(result.Messages);
-                    return RedirectToAction("Index");
-                }
 
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
+                if (result.IsSuccess)
+                {
+                    return Json(new { success = true, message = "Avans talebi başarıyla silindi." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = result.Messages ?? "Silme işlemi sırasında bir hata oluştu." });
+                }
             }
-            return RedirectToAction("Index", "Home");
+            catch (Exception ex)
+            {
+
+                return Json(new { success = false, message = "Sunucu tarafında beklenmeyen bir hata oluştu: " + ex.Message });
+            }
         }
 
         [HttpGet]
@@ -136,7 +142,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
                 dto.Image = ms.ToArray();
             }
 
-            // AppUserId boş gelirse mevcut kullanıcının Id'sini koy
             if (dto.AppUserId == Guid.Empty)
                 dto.AppUserId = await ResolveCurrentAppUserIdAsync();
 
@@ -155,33 +160,47 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
         }
 
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveAdvance(Guid id)
         {
-            var result = await _advanceService.ApproveAsync(id);
-
-            if (!result.IsSuccess)
+            try
             {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
-            }
+                var result = await _advanceService.ApproveAsync(id);
 
-            await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction("Index");
+                if (!result.IsSuccess)
+                {
+                    return Json(new { success = false, message = result.Messages });
+                }
+
+                return Json(new { success = true, message = "The advance request has been approved." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred." });
+            }
         }
 
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectAdvance(Guid id)
         {
-            var result = await _advanceService.RejectAsync(id);
-
-            if (!result.IsSuccess)
+            try
             {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
-            }
+                var result = await _advanceService.RejectAsync(id);
 
-            await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction("Index");
+                if (!result.IsSuccess)
+                {
+                    return Json(new { success = false, message = result.Messages });
+                }
+
+                return Json(new { success = true, message = "The advance request has been rejected." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An unexpected error occurred." });
+            }
         }
         public async Task<IActionResult> Details(Guid id)
         {
@@ -214,7 +233,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
         private async Task<SelectList> GetManagers(Guid? selectedId = null)
         {
-            // Tüm AppUser’ları getir (rol filtrelemek istersen burada yaparsın)
             var res = await _userService.GetAllAsync();
             if (!res.IsSuccess || res.Data == null)
                 return new SelectList(Enumerable.Empty<SelectListItem>());

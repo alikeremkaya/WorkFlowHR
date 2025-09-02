@@ -9,7 +9,6 @@ namespace WorkFlowHR.Domain.Entities
         public byte[]? Image { get; set; }
         public string Description { get; set; } = null!;
 
-        // İlgili kullanıcı (AppUser) ilişkisi
         public Guid AppUserId { get; set; }
         public virtual AppUser AppUser { get; set; } = null!;
     }

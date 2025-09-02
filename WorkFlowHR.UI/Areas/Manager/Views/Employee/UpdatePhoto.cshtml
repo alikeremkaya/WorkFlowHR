@@ -3,168 +3,193 @@
     Layout = null;
 }
 
-<form id="employeePhotoForm" asp-action="UpdatePhoto" method="post" enctype="multipart/form-data" class="neo-form">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<form id="employeePhotoForm" asp-action="UpdatePhoto" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
     <input asp-for="Id" type="hidden" />
 
-    <div class="mb-3 text-center">
-        @if (Model.ExistingImage != null && Model.ExistingImage.Length > 0)
-        {
-            <img src="data:image;base64,@Convert.ToBase64String(Model.ExistingImage)" alt="Current Photo"
-                 style="max-width:160px;max-height:160px;border-radius:12px;box-shadow:0 6px 16px rgba(2,6,23,.12);" />
-        }
-        else
-        {
-            <div style="width:160px;height:160px;border-radius:12px;display:inline-grid;place-items:center;background:#f1f5f9;color:#64748b;">
-                Fotoğraf yok
-            </div>
-        }
-    </div>
+    <h2 class="form-title">Update Employee Photo</h2>
+    <p class="form-subtitle">Upload a new photo for <strong>@Model.DisplayName</strong>.</p>
 
-    <div class="mb-3">
-        <label class="neo-label">Employee</label>
-        <div class="form-control neo-input" readonly>@Model.DisplayName (@Model.Email)</div>
-    </div>
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
 
-    <div class="mb-3">
-        <label asp-for="NewImage" class="form-label neo-label">New Image</label>
-        <div class="neo-file-drop" tabindex="0">
-            <input asp-for="NewImage" type="file" accept="image/*" class="neo-file-input" />
-            <div class="neo-file-hint">
-                <div class="neo-file-icon">📎</div>
-                <div>
-                    <div class="neo-file-title">Upload</div>
-                    <div class="neo-file-sub">PNG/JPG, ~5MB</div>
+    <div class="form-group text-center">
+        <label class="form-label">Current Photo</label>
+        <div>
+            @if (Model.ExistingImage != null && Model.ExistingImage.Length > 0)
+            {
+                <img src="data:image;base64,@Convert.ToBase64String(Model.ExistingImage)" alt="Current Photo"
+                     style="width:120px; height:120px; object-fit:cover; border-radius:50%; border:3px solid var(--border-color);" />
+            }
+            else
+            {
+                <div style="width:120px; height:120px; border-radius:50%; display:inline-grid; place-items:center; background:#e9ecef; color:#64748b; font-size: 3rem; font-weight: 600;">
+                    @Model.DisplayName.Substring(0, 1).ToUpper()
                 </div>
-            </div>
+            }
         </div>
-        <div id="fileName" class="text-muted mt-1 small"></div>
-        <span asp-validation-for="NewImage" class="text-danger small"></span>
     </div>
 
-    <div class="d-grid">
-        <button type="submit" class="btn neo-btn-gradient">Save</button>
+    <div class="form-group">
+        <label asp-for="NewImage" class="form-label">New Photo File</label>
+        <input asp-for="NewImage" type="file" accept="image/png, image/jpeg" class="form-control" required />
+        <div class="d-flex align-items-center gap-3 mt-2">
+            <img id="photoPreview" alt="New photo preview" style="display:none; width:80px; height:80px; object-fit:cover; border-radius:var(--radius-sm); border:1px solid var(--border-color);" />
+            <div id="photoFileName" class="text-muted small-text"></div>
+        </div>
+        <span asp-validation-for="NewImage" class="text-danger small-text"></span>
+    </div>
+
+    <div class="form-actions">
+        <button type="button" class="btn btn-secondary-custom" onclick="closeModal('createModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary-custom">Save Photo</button>
     </div>
 </form>
 
-@section Scripts {
-    <script>
-        (function(){
-            const $form = $('#employeePhotoForm');
-            if (!$form.length || $form.data('bound')) return;
-            $form.data('bound', true);
+<script>
+    (function () {
+        const $form = $('#employeePhotoForm');
+        if ($form.data('initialized')) return;
+        $form.data('initialized', true);
 
-            $form.on('click keydown', '.neo-file-drop', function (e) {
-                if (e.type === 'click' || (e.type === 'keydown' && (e.key === 'Enter' || e.key === ' '))) {
-                    $(this).find('input[type="file"]').trigger('click');
-                    e.preventDefault();
+        $form.on('submit', function (e) {
+            e.preventDefault();
+            const form = this;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const $submitButton = $(form).find('button[type="submit"]');
+            $submitButton.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("UpdatePhoto", "Employee", new { area = "Manager" })',
+                data: new FormData(form),
+                contentType: false,
+                processData: false,
+                headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+                success: function () {
+                    swal("Success!", "The employee's photo has been updated.", "success")
+                        .then(() => location.reload());
+                },
+                error: function (xhr) {
+                    $submitButton.prop('disabled', false).text('Save Photo');
+                    swal("Error!", "An unexpected error occurred while uploading.", "error");
                 }
             });
+        });
 
-            $form.on('change', 'input[type="file"][name="NewImage"]', function () {
-                const file = this.files && this.files[0];
-                $('#fileName').text(file ? file.name : '');
-            });
-
-            $form.on('submit', function(e){
-                e.preventDefault();
-                const fd = new FormData(this);
-
-                $.ajax({
-                    url: $form.attr('action'),
-                    type: 'POST',
-                    data: fd,
-                    processData: false,
-                    contentType: false,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                    success: function (res) {
-                        if (res && res.success) {
-                            $('#updatePhotoModal').modal('hide');
-                            location.reload();
-                            return;
-                        }
-                        location.reload();
-                    },
-                    error: function () {
-                        alert('Fotoğraf güncellenemedi.');
-                    }
-                });
-            });
-        })();
-    </script>
-}
+        $form.on('change', 'input[type="file"][name="NewImage"]', function () {
+            const file = this.files[0];
+            const $preview = $('#photoPreview');
+            const $fileName = $('#photoFileName');
+            if (!file) {
+                $preview.hide().attr('src', '');
+                $fileName.text('');
+                return;
+            }
+            $fileName.text(file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)');
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = e => $preview.attr('src', e.target.result).show();
+                reader.readAsDataURL(file);
+            } else {
+                $preview.hide();
+            }
+        });
+    })();
+</script>
 
 <style>
-    .neo-form {
-        padding: 8px 6px
-    }
-
-    .neo-label {
+    .form-title {
+        font-size: 1.5rem;
         font-weight: 600;
-        color: #0f172a
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
     }
 
-    .neo-input {
-        border-radius: 12px;
-        border: 1px solid rgba(2,6,23,.15);
-        background: rgba(255,255,255,.95)
+    .form-subtitle {
+        font-size: 1rem;
+        color: var(--secondary-color);
+        margin-top: 0;
+        margin-bottom: 1.5rem;
     }
 
-        .neo-input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15)
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 0.9rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-color);
+        background-color: var(--bg-white);
+        border: 1px solid var(--border-color);
+        appearance: none;
+        border-radius: var(--radius-sm);
+        transition: all .15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
         }
 
-    .neo-file-drop {
+    .small-text {
+        font-size: 0.875em;
+    }
+
+    .form-actions {
         display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-secondary-custom {
+        background-color: #f8f9fa;
+        color: #212529;
+        font-weight: 500;
+        border: 1px solid #dee2e6;
+        border-radius: var(--radius-sm);
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: all .15s ease;
+        display: inline-flex;
         align-items: center;
-        gap: 12px;
+        justify-content: center;
         cursor: pointer;
-        border: 1.5px dashed rgba(2,6,23,.18);
-        background: linear-gradient(180deg,rgba(255,255,255,.92),rgba(248,250,252,.85));
-        border-radius: 14px;
-        padding: 14px 12px;
-        position: relative
     }
 
-    .neo-file-input {
-        position: absolute;
-        inset: 0;
-        opacity: 0;
-        cursor: pointer
-    }
-
-    .neo-file-icon {
-        font-size: 20px;
-        line-height: 1
-    }
-
-    .neo-file-title {
-        font-weight: 700;
-        color: #0f172a
-    }
-
-    .neo-file-sub {
-        font-size: 12px;
-        color: #64748b
-    }
-
-    .neo-btn-gradient {
-        background: linear-gradient(90deg,#06b6d4,#22d3ee);
-        color: #fff;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: .2px;
-        padding: 10px 18px;
-        box-shadow: 0 10px 20px rgba(2,6,23,.18)
-    }
-
-        .neo-btn-gradient:hover {
-            filter: brightness(.97)
+        .btn-secondary-custom:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
         }
 
-    .text-danger.small {
-        font-size: .85rem
+    .alert-danger {
+        color: #842029;
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+        padding: 1rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
     }
 </style>
+

@@ -20,7 +20,6 @@ namespace WorkFlowHR.Infrastructure.Configurations
                 .Map(d => d.LastName, s => s.FindFirst(ClaimTypes.Surname)!.Value)
                 .Map(d => d.AzureAdObjectId, s => s.FindFirst("oid")!.Value)
                 .Map(d => d.DisplayName, s => s.Identity != null ? s.Identity.Name : string.Empty)
-                // Role mapping is handled in service
                 .Inherits<BaseUser, AppUser>();
         }
     }

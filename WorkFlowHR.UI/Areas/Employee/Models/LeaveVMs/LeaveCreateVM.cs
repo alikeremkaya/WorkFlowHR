@@ -6,16 +6,22 @@ namespace WorkFlowHR.UI.Areas.Employee.Models.LeaveVMs
 {
     public class LeaveCreateVM
     {
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime StartDate { get; set; }
-        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime EndDate { get; set; }
+        public DateTime StartDate { get; set; } = DateTime.Now;
+
+        public DateTime EndDate { get; set; } = DateTime.Now;
         public Roles Roles { get; set; }
+
         public Guid LeaveTypeId { get; set; }
-        public SelectList? LeaveTypes { get; set; }
+
+        public SelectList LeaveTypes { get; set; } // controller doldurur
+
+        public Guid AppUserId { get; set; }
+        public SelectList AppUser { get; set; }
+
+        public Guid? ManagerAppUserId { get; set; }        // opsiyonel
+        public SelectList? Managers { get; set; }          // controller dolduracak
 
         public Guid ManagerId { get; set; }
-        public SelectList Managers { get; set; }
         public string ManagerFirstName { get; set; }
 
         public string ManagerLastName { get; set; }

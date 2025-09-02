@@ -12,7 +12,7 @@ namespace WorkFlowHR.Application.DTOs.AdvanceDTOs
         public byte[]? Image { get; set; }
 
         public Guid AppUserId { get; set; }
-        public string AppUserDisplayName { get; set; } = "";      // AppUser.DisplayName veya email prefix
+        public string AppUserDisplayName { get; set; } = "";     
 
         public Guid? ManagerAppUserId { get; set; }
         public string? ManagerName { get; set; }

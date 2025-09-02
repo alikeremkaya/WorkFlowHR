@@ -8,7 +8,6 @@ namespace WorkFlowHR.Domain.Entities
         public string Name { get; set; } = null!;
         public string? Description { get; set; }
 
-        // EF için ICollection
         public virtual ICollection<Leave> Leaves { get; set; } = new HashSet<Leave>();
     }
 }

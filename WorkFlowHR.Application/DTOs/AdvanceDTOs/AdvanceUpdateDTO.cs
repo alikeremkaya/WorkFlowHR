@@ -18,6 +18,6 @@ namespace WorkFlowHR.Application.DTOs.AdvanceDTOs
         public Guid? ManagerAppUserId { get; set; }
         public SelectList Managers { get; set; }
 
-        public AdvanceStatus AdvanceStatus { get; set; }   // Pending/Approved/Rejected
+        public AdvanceStatus AdvanceStatus { get; set; }  
     }
 }

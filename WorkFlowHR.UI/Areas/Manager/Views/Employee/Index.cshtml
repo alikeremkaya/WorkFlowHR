@@ -11,77 +11,66 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
 
-<div class="container-fluid mt-4 px-0">
-    <div class="edge-left">
-        <div class="emp-grid">
-            @foreach (var item in Model)
-            {
-                <article class="emp-card">
-                    <div class="emp-actions dropdown">
-                        <button class="btn-kebab" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">⋮</button>
-                        <div class="dropdown-menu dropdown-menu-right">
-                            <a class="dropdown-item" href="@Url.Action("Index", "Summary", new { employeeId = item.Id })">Details</a>
-                            <button class="dropdown-item" data-toggle="modal" data-target="#updatePhotoModal" data-id="@item.Id">Update Photo</button>
-                            <button class="dropdown-item dropdown-item-delete" data-id="@item.Id">Delete</button>
+<div class="page-head">
+    <h1 class="page-title">Employees</h1>
+</div>
+
+<form id="__ajaxAntiForgeryForm" style="display:none">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="employee-grid-container">
+    <div class="employee-grid">
+        @foreach (var item in Model)
+        {
+            <div class="employee-card">
+                <div class="dropdown employee-actions">
+                    <button class="btn btn-sm dropdown-toggle action-dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="ti-more-alt"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="@Url.Action("Index", "Summary", new { employeeId = item.Id })">Details</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0);" onclick="openUpdatePhotoModal('@item.Id')">Update Photo</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><button class="dropdown-item btn-delete-direct" data-id="@item.Id">Delete</button></li>
+                    </ul>
+                </div>
+
+                <div class="employee-photo-container">
+                    @if (item.Image == null || item.Image.Length == 0)
+                    {
+                        <div class="employee-photo-placeholder">
+                            <span>@(string.IsNullOrWhiteSpace(item.AppUserDisplayName) ? "??" : item.AppUserDisplayName.Trim().Substring(0, 1).ToUpper())</span>
                         </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <img class="employee-photo" src="@($"data:image/png;base64,{Convert.ToBase64String(item.Image)}")" alt="photo" />
+                    }
+                </div>
 
-                    <div class="emp-photo-wrap">
-                        @if (item.Image == null || item.Image.Length == 0)
-                        {
-                            <div class="emp-photo--placeholder">
-                                <span>@(string.IsNullOrWhiteSpace(item.AppUserDisplayName) ? "NO IMG" : (item.AppUserDisplayName.Trim()[0].ToString().ToUpper()))</span>
-                            </div>
-                            <button class="btn-mini-edit" data-toggle="modal" data-target="#updatePhotoModal" data-id="@item.Id">Upload</button>
-                        }
-                        else
-                        {
-                            <img class="emp-photo" src="@($"data:image/png;base64,{Convert.ToBase64String(item.Image)}")" alt="photo" />
-                            <button class="btn-mini-edit" data-toggle="modal" data-target="#updatePhotoModal" data-id="@item.Id">Change</button>
-                        }
+                <div class="employee-details">
+                    <div class="employee-name" title="@item.AppUserDisplayName">@item.AppUserDisplayName</div>
+                    <div class="employee-email" title="@item.Email">@item.Email</div>
+                    <div class="employee-role">
+                        <span class="chip">@item.Roles</span>
                     </div>
-
-                    <div class="emp-meta">
-                        <div class="emp-name" title="@item.AppUserDisplayName">@item.AppUserDisplayName</div>
-                        <div class="emp-email" title="@item.Email">@item.Email</div>
-                        <div class="emp-tags">
-                            <span class="role-chip">@item.Roles</span>
-                        </div>
-                    </div>
-                </article>
-            }
-        </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
-<!-- Create Modal (AJAX ile içerik) -->
-<div class="modal fade" id="createEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="createEmployeeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content neo-modal">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createEmployeeModalLabel">Create Employee</h5>
-                <button type="button" class="close neo-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="createModalContent" class="p-3"></div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Update Photo Modal (AJAX ile içerik) -->
-<div class="modal fade" id="updatePhotoModal" tabindex="-1" role="dialog" aria-labelledby="updatePhotoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content neo-modal">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updatePhotoModalLabel">Update Photo</h5>
-                <button type="button" class="close neo-close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="updatePhotoContent" class="p-3"></div>
-            </div>
-        </div>
+<div id="formModal" class="custom-modal-root" role="dialog" aria-modal="true">
+    <div class="custom-modal-card" onclick="event.stopPropagation()">
+        <button class="custom-close-button" onclick="closeModal('formModal')" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div id="formModalContent" class="p-4"></div>
     </div>
 </div>
 
@@ -90,286 +79,281 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
+        function getRequestVerificationToken() {
+            return $('#__ajaxAntiForgeryForm input[name="__RequestVerificationToken"]').val();
+        }
+
         $(function () {
-            // Create
-            $('#createEmployeeModal').on('show.bs.modal', function () {
-                const url = '@Url.Action("Create", "Employee")';
-                $('#createModalContent').load(url);
-            });
-
-            // Update photo
-            $('#updatePhotoModal').on('show.bs.modal', function (e) {
-                const id = $(e.relatedTarget).data('id');
-                const url = '@Url.Action("UpdatePhoto", "Employee")/' + id;
-                $('#updatePhotoContent').load(url);
-            });
-
-            // Delete
-            $(document).on('click', '.dropdown-item-delete', function () {
+            $(document).on('click', '.btn-delete-direct', function (e) {
+                e.stopPropagation();
                 const id = $(this).data('id');
                 swal({
-                    title: "Delete?",
-                    text: "This action cannot be undone.",
+                    title: "Are you sure?",
+                    text: "This action cannot be undone!",
                     icon: "warning",
                     buttons: {
-                        cancel: { text: "No", visible: true, className: "btn btn-secondary", closeModal: true },
-                        confirm: { text: "Yes", className: "btn btn-danger", closeModal: false }
-                    }
+                        cancel: { text: "Cancel", visible: true, className: "btn btn-secondary", closeModal: true },
+                        confirm: { text: "Delete", className: "btn btn-danger", closeModal: false }
+                    },
+                    dangerMode: true,
                 }).then((isConfirm) => {
-                    if (isConfirm) {
-                        $.ajax({
-                            url: '@Url.Action("Delete", "Employee", new { area = "Manager" })',
-                            type: 'POST',
-                            data: { id: id },
-                            success: function () {
-                                swal({ title: "Deleted", text: "Record removed.", icon: "success" })
-                                    .then(() => location.reload());
-                            },
-                            error: function () {
-                                swal("Error", "An error occurred while deleting.", "error");
-                            }
-                        });
-                    } else {
-                        swal.close();
-                    }
+                    if (!isConfirm) return;
+
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Employee", new { area = "Manager" })',
+                        type: 'POST',
+                        data: { id: id },
+                        headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+                        success: function () {
+                            swal("Success!", "The employee has been deleted.", "success").then(() => location.reload());
+                        },
+                        error: function () {
+                            swal("Error!", "An unexpected error occurred.", "error");
+                        }
+                    });
                 });
             });
 
-            // Modal dışına çift tıklama ile kapatma
-            $(document).on('dblclick', '.modal', function (e) {
-                if ($(e.target).is('.modal')) $(this).modal('hide');
+            $(document).on('click', '.custom-modal-root', function (e) {
+                if (e.target === e.currentTarget) $(this).fadeOut(200);
             });
-            $(document).on('dblclick', '.modal-backdrop', function () {
-                $('.modal.show').modal('hide');
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') $('.custom-modal-root:visible').fadeOut(200);
             });
         });
+
+        function openUpdatePhotoModal(id) {
+            const url = '@Url.Action("UpdatePhoto", "Employee", new { area = "Manager" })' + '?id=' + encodeURIComponent(id);
+             $.get(url, function (html) {
+                $('#formModalContent').html(html);
+                $('#formModal').fadeIn(200).css('display', 'flex');
+            });
+        }
+
+        function closeModal(id) {
+            $('#' + id).fadeOut(200);
+        }
     </script>
 }
 
-<style>
-    :root {
-        --ink-1: #0f172a;
-        --ink-2: #334155;
-        --muted: #64748b;
-        --bg-1: #f5f7ff;
-        --card: #ffffff;
-        --brand-a: #7c3aed;
-        --brand-b: #06b6d4;
-        --brand-c: #22d3ee;
-        --ring: rgba(124,58,237,.18);
-    }
-
-    body {
-        background: var(--bg-1);
-    }
-
-    /* main-panel padding’ini telafi ederek kartları soldan başlat */
-    .edge-left {
-        margin-left: -16px;
-        padding-left: 0;
-    }
-    @@media (min-width: 992px) {
-        .edge-left
-
-    {
-        margin-left: -28px;
-    }
-
-    }
-
-    /* GRID */
-    .emp-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
-        gap: 1.25rem;
-        justify-content: start; /* soldan başlasın */
-        align-content: start;
-        grid-auto-flow: row dense;
-        padding-left: 16px; /* görsel nefes alanı */
-        padding-right: 16px;
-    }
-    @@media (min-width: 992px) {
-        .emp-grid
-
-    {
-        padding-left: 28px;
-        padding-right: 28px;
-    }
-
-    }
-
-    .emp-card {
-        position: relative;
-        background: var(--card);
-        border: 1px solid rgba(2,6,23,.06);
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(2,6,23,.08);
-        overflow: hidden;
-        transition: transform .18s ease, box-shadow .18s ease;
-    }
-
-        .emp-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 16px 36px rgba(2,6,23,.14);
+@section Styles {
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --primary-hover: #0b5ed7;
+            --secondary-color: #6c757d;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --danger-text: #842029;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-    .emp-actions {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        z-index: 2;
-    }
-
-    .btn-kebab {
-        width: 34px;
-        height: 34px;
-        border-radius: 10px;
-        border: none;
-        background: rgba(2,6,23,.7);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        padding: 0;
-        font-size: 18px;
-        transition: filter .15s ease;
-    }
-
-        .btn-kebab:hover {
-            filter: brightness(1.05);
+        body {
+            background: var(--bg-light);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-    .dropdown-menu {
-        font-size: .9rem;
-        border-radius: 12px;
-        border: 1px solid rgba(2,6,23,.08);
-    }
-
-    /* Foto alanı */
-    .emp-photo-wrap {
-        display: grid;
-        place-items: center;
-        aspect-ratio: 3 / 4;
-        overflow: hidden;
-        background: linear-gradient(90deg, rgba(124,58,237,.08), rgba(6,182,212,.08));
-        padding: 6px;
-        border-radius: 12px;
-        position: relative;
-    }
-
-    .emp-photo {
-        width: 100%;
-        height: 100%;
-        object-fit: contain; /* kırpmadan sığdır (tamamı görünsün) */
-        object-position: center;
-        display: block;
-        image-rendering: auto;
-        border-radius: 10px;
-    }
-
-    .emp-photo--placeholder {
-        width: 100%;
-        aspect-ratio: 3 / 4;
-        display: grid;
-        place-items: center;
-        background: radial-gradient(600px 200px at -20% -10%, rgba(124,58,237,.18), transparent 60%), radial-gradient(600px 200px at 120% 10%, rgba(6,182,212,.18), transparent 60%), linear-gradient(180deg, #f8fafc, #eef2ff);
-        color: #1f2937;
-        font-weight: 800;
-        font-size: 2rem;
-        border-radius: 12px;
-    }
-    @@supports not (aspect-ratio: 3/4) {
-        .emp-photo-wrap, .emp-photo--placeholder
-
-    {
-        height: 320px;
-    }
-
-    }
-    @@media (min-width:1200px) {
-        .emp-photo-wrap, .emp-photo--placeholder
-
-    {
-        aspect-ratio: 2 / 3;
-    }
-
-    }
-    @@supports not (aspect-ratio: 2/3) {
-    @@media (min-width:1200px)
-
-    {
-        .emp-photo-wrap, .emp-photo--placeholder
-
-    {
-        height: 360px;
-    }
-
-    }
-    }
-
-    .btn-mini-edit {
-        position: absolute;
-        right: 10px;
-        bottom: 10px;
-        z-index: 2;
-        background: linear-gradient(90deg, var(--brand-b), var(--brand-c));
-        color: #fff;
-        border: none;
-        border-radius: 999px;
-        padding: 6px 12px;
-        font-size: .8rem;
-        font-weight: 700;
-        box-shadow: 0 8px 18px rgba(2,6,23,.18);
-    }
-
-        .btn-mini-edit:hover {
-            filter: brightness(.95);
+        .page-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 24px 28px;
         }
 
-    .emp-meta {
-        padding: 12px 14px 14px;
-    }
+        .page-title {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.75rem;
+            margin: 0;
+        }
 
-    .emp-name {
-        font-weight: 800;
-        color: var(--ink-1);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
+        .employee-grid-container {
+            padding: 0 1.5rem 1.5rem;
+        }
 
-    .emp-email {
-        color: var(--muted);
-        font-size: .9rem;
-        margin-top: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-bottom: .6rem; /* mail ile rol arasında net boşluk */
-    }
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
 
-    .emp-tags {
-        margin-top: .1rem;
-    }
-    /* ek boşluğu mail tarafında verdik */
+        .employee-card {
+            position: relative;
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md, 8px);
+            overflow: hidden;
+            transition: all 0.2s ease-in-out;
+        }
 
-    .role-chip {
-        background: #eef2ff;
-        color: #3730a3;
-        border-radius: 999px;
-        padding: .25rem .6rem;
-        font-weight: 700;
-        font-size: .75rem;
-    }
+            .employee-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,.1));
+            }
 
-    .neo-modal {
-        border-radius: 14px;
-        border: 1px solid rgba(2,6,23,.08);
-        box-shadow: 0 12px 30px rgba(2,6,23,.12);
-    }
+        .employee-actions {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            z-index: 2;
+        }
 
-    .neo-close {
-        outline: none;
-    }
-</style>
+        .employee-photo-container {
+            aspect-ratio: 1 / 1;
+            background-color: var(--bg-light);
+        }
+
+        .employee-photo, .employee-photo-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .employee-photo-placeholder {
+            display: grid;
+            place-items: center;
+            font-size: 4rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            background-color: #e9ecef;
+        }
+
+        .employee-details {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .employee-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .employee-email {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 0.75rem;
+        }
+
+        .chip {
+            display: inline-block;
+            padding: .3rem .75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .75rem;
+            line-height: 1;
+            background-color: #e9ecef;
+            color: #495057;
+        }
+
+        .action-dropdown-toggle {
+            background-color: rgba(255,255,255,0.8);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 0.25rem 0.5rem;
+        }
+
+            .action-dropdown-toggle:hover, .action-dropdown-toggle:focus {
+                background-color: var(--bg-white);
+            }
+
+            .action-dropdown-toggle::after {
+                display: none;
+            }
+
+        .dropdown-menu {
+            --bs-dropdown-min-width: 160px;
+            --bs-dropdown-padding-y: 0.5rem;
+            --bs-dropdown-font-size: 0.9rem;
+            --bs-dropdown-border-radius: var(--radius-md, 8px);
+            --bs-dropdown-link-hover-bg: var(--bg-light);
+            box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,.1));
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .dropdown-item-delete {
+            color: #842029 !important;
+        }
+
+            .dropdown-item-delete:hover {
+                background-color: #f8d7da !important;
+            }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+
+        .custom-modal-root {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+            background: rgba(33, 37, 41, 0.6);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .custom-modal-card {
+            width: min(560px, 92vw);
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            animation: modal-pop .2s ease-out;
+        }
+
+        @@keyframes modal-pop {
+            from {
+                transform: scale(.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .custom-close-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--secondary-color);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s ease;
+            z-index: 10;
+        }
+
+            .custom-close-button:hover {
+                background-color: var(--bg-light);
+            }
+    </style>
+}
+

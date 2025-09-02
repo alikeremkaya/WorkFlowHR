@@ -1,222 +1,370 @@
 ﻿@model WorkFlowHR.UI.Areas.Manager.Models.LeaveVMs.LeaveCreateVM
 
-<!-- Neo modal body -->
-<div class="neo-form-card">
-    <div class="neo-form-header">
-        <div class="neo-dot"></div>
-        <div class="neo-dot"></div>
-        <div class="neo-dot"></div>
-        <span>Create New Leave</span>
+
+
+@{
+
+    Layout = null;
+
+}
+
+
+
+<form id="leaveCreateForm" asp-action="Create" method="post">
+
+    @Html.AntiForgeryToken()
+
+
+
+    <h2 class="form-title">Create Leave for Employee</h2>
+
+    <p class="form-subtitle">Please select an employee and fill out the leave details.</p>
+
+
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+
+
+    <div class="form-group">
+
+        <label asp-for="ManagerId" class="form-label">Select Employee</label>
+
+        <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control" required>
+
+            <option value="" disabled selected>--- Please select an employee ---</option>
+
+        </select>
+
+        <span asp-validation-for="ManagerId" class="text-danger small-text"></span>
+
     </div>
 
-    <form id="leaveCreateForm" asp-action="Create" method="post" class="neo-form" >
-        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
 
-        <!-- Start -->
-        <div class="mb-3">
-            <label asp-for="StartDate" class="form-label neo-label">Start Date</label>
-            <input asp-for="StartDate" type="date" class="form-control neo-input" required />
-            <span asp-validation-for="StartDate" class="text-danger small"></span>
-        </div>
 
-        <!-- End -->
-        <div class="mb-3">
-            <label asp-for="EndDate" class="form-label neo-label">End Date</label>
-            <input asp-for="EndDate" type="date" class="form-control neo-input" required />
-            <span asp-validation-for="EndDate" class="text-danger small"></span>
-        </div>
+    <div class="form-group">
 
-        <!-- Leave Type -->
-        <div class="mb-3">
-            <label asp-for="LeaveTypeId" class="form-label neo-label">Leave Type</label>
-            <select asp-for="LeaveTypeId" asp-items="@Model.LeaveTypes" class="form-control neo-input" required>
-                <option value="">--- Select ---</option>
-            </select>
-            <span asp-validation-for="LeaveTypeId" class="text-danger small"></span>
-        </div>
+        <label asp-for="LeaveTypeId" class="form-label">Leave Type</label>
 
-        <!-- Employee (ManagerId -> employee seçimi) -->
-        <div class="mb-4">
-            <label asp-for="ManagerId" class="form-label neo-label">Employee</label>
-            <select asp-for="ManagerId" asp-items="@Model.Managers" class="form-control neo-input" required>
-                <option value="">--- Select ---</option>
-            </select>
-            <span asp-validation-for="ManagerId" class="text-danger small"></span>
-        </div>
+        <select asp-for="LeaveTypeId" asp-items="@Model.LeaveTypes" class="form-control" required>
 
-        <div class="d-grid">
-            <button type="submit" class="btn neo-btn-gradient">Create</button>
-        </div>
-    </form>
+            <option value="" disabled selected>--- Please select a leave type ---</option>
 
-    <div class="text-center mt-3">
-        <a asp-action="Index" class="btn neo-btn-secondary">Back to List</a>
+        </select>
+
+        <span asp-validation-for="LeaveTypeId" class="text-danger small-text"></span>
+
     </div>
-</div>
 
-<!-- Inline script: partial AJAX ile yüklense bile çalışır -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+
+    <div class="row">
+
+        <div class="col-md-6">
+
+            <div class="form-group">
+
+                <label asp-for="StartDate" class="form-label">Start Date</label>
+
+                <input asp-for="StartDate" type="date" class="form-control" required />
+
+                <span asp-validation-for="StartDate" class="text-danger small-text"></span>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="form-group">
+
+                <label asp-for="EndDate" class="form-label">End Date</label>
+
+                <input asp-for="EndDate" type="date" class="form-control" required />
+
+                <span asp-validation-for="EndDate" class="text-danger small-text"></span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="form-actions">
+
+        <button type="button" class="btn btn-secondary-custom" onclick="closeModal('createModal')">Cancel</button>
+
+        <button type="submit" class="btn btn-primary-custom">
+
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+
+            Create Leave
+
+        </button>
+
+    </div>
+
+</form>
+
+
+
 <script>
-    (function bindLeaveCreate(){
-        if (window.__leaveCreateBound) return;
-        window.__leaveCreateBound = true;
+
+    (function () {
 
         const $form = $('#leaveCreateForm');
-        if (!$form.length) return;
 
-        const $start = $('#StartDate');
-        const $end   = $('#EndDate');
+        if ($form.data('initialized')) return;
 
-        // bugün min
-        const today = new Date();
-        const toInput = d => new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().split('T')[0];
-        const todayStr = toInput(today);
+        $form.data('initialized', true);
+
+
+
+        const $start = $form.find('[name="StartDate"]');
+
+        const $end = $form.find('[name="EndDate"]');
+
+        const todayStr = new Date().toISOString().split('T')[0];
+
+
+
         $start.attr('min', todayStr);
+
         $end.attr('min', todayStr);
 
-        function validateDates(showMsg = true){
-            const s = new Date($start.val());
-            const e = new Date($end.val());
-            const t = new Date(todayStr);
 
-            // reset
-            $start[0].setCustomValidity('');
-            $end[0].setCustomValidity('');
 
-            if ($start.val() && s < t){
-                if (showMsg){ $start[0].setCustomValidity('Start date cannot be in the past.'); $start[0].reportValidity(); }
+        function validateDates() {
+
+            const startDate = $start.val();
+
+            const endDate = $end.val();
+
+
+
+            if (startDate && endDate && new Date(endDate) <= new Date(startDate)) {
+
+                swal("Invalid Date", "End date must be later than the start date.", "warning");
+
                 return false;
+
             }
-            if ($start.val() && $end.val() && e <= s){
-                if (showMsg){ $end[0].setCustomValidity('End date must be later than start date.'); $end[0].reportValidity(); }
-                return false;
-            }
+
             return true;
+
         }
 
-        // Start değişince End min güncellensin
-        $start.on('change', function(){
-            const s = $start.val();
-            $end.attr('min', s || todayStr);
-            validateDates(false);
-        });
-        $end.on('change', function(){ validateDates(false); });
 
-        // AJAX submit (Index’teki modal akışına uygun)
-        $form.on('submit', function(e){
-            if (!validateDates(true)) { e.preventDefault(); return false; }
+
+        $start.on('change', function () {
+
+            const startDateValue = $(this).val();
+
+            if (startDateValue) {
+
+                $end.attr('min', startDateValue);
+
+            }
+
+        });
+
+
+
+        $form.on('submit', function (e) {
 
             e.preventDefault();
+
+            const form = this;
+
+
+
+            if (!form.checkValidity()) {
+
+                form.reportValidity();
+
+                return;
+
+            }
+
+            if (!validateDates()) {
+
+                return;
+
+            }
+
+
+
+            const $submitButton = $(form).find('button[type="submit"]');
+
+            $submitButton.prop('disabled', true).text('Saving...');
+
+
+
             $.ajax({
-                type: $form.attr('method') || 'POST',
-                url:  $form.attr('action'),
-                data: $form.serialize(),
-                success: function (res) {
-                    if (res && res.success) {
-                        window.location.href = res.redirectUrl;
-                    } else if (res && res.errors) {
-                        // sunucudan ModelState hataları
-                        for (const key in res.errors) {
-                            const $field = $('[name="' + key + '"]');
-                            const $span = $field.next('.text-danger');
-                            if ($span.length) $span.text(res.errors[key]);
-                        }
-                    } else {
-                        // fallback
-                        location.reload();
-                    }
+
+                type: 'POST',
+
+                url: '@Url.Action("Create", "Leave", new { area = "Manager" })',
+
+                data: $(form).serialize(),
+
+                headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+
+                success: function () {
+
+                    swal("Success!", "The leave request has been created.", "success")
+
+                        .then(() => location.reload());
+
                 },
-                error: function(){
-                    alert('An unexpected error occurred.');
+
+                error: function (xhr) {
+
+                    $submitButton.prop('disabled', false).html('<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Create Leave');
+
+                    let msg = "An error occurred. Please check the form values.";
+
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+
+                       msg = Object.values(xhr.responseJSON.errors).join("\n");
+
+                    }
+
+                    swal("Error!", msg, "error");
+
                 }
+
             });
-            return false;
+
         });
+
     })();
+
 </script>
 
+
+
 <style>
-    /* --- Neo theme (Advance formlarındaki ile uyumlu) --- */
-    .neo-form-card {
-        background: rgba(255,255,255,.9);
-        border: 1px solid rgba(2,6,23,.08);
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(2,6,23,.12);
-        padding: 18px 16px 22px 16px;
+
+        .form-title {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--text-color);
+                margin-bottom: 0.5rem;
+
     }
 
-    .neo-form-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
-        border: 1px solid rgba(2,6,23,.06);
-        font-weight: 700;
-        color: #0f172a;
+
+
+        .form-subtitle {
+                font-size: 1rem;
+                color: var(--secondary-color);
+                margin-top: 0;
+                margin-bottom: 1.5rem;
+
     }
 
-    .neo-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124,58,237,.15) inset;
+
+
+        .form-group {
+                margin-bottom: 1.25rem;
+
     }
 
-    .neo-label {
-        font-weight: 600;
-        color: #0f172a;
+
+
+        .form-label {
+                display: block;
+                font-weight: 500;
+                color: var(--text-color);
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+
     }
 
-    .neo-input {
-        border-radius: 12px;
-        border: 1px solid rgba(2,6,23,.15);
-        background: rgba(255,255,255,.9);
-        transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
+
+
+        .form-control {
+                display: block;
+                width: 100%;
+                padding: 0.65rem 0.9rem;
+                font-size: 1rem;
+                line-height: 1.5;
+                color: var(--text-color);
+                background-color: var(--bg-white);
+                border: 1px solid var(--border-color);
+                appearance: none;
+                border-radius: var(--radius-sm);
+                transition: all .15s ease-in-out;
+
     }
 
-        .neo-input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15);
-            transform: translateY(-1px);
-        }
 
-    .neo-btn-gradient {
-        background: linear-gradient(90deg,#06b6d4,#22d3ee);
-        color: #fff !important;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: .2px;
-        padding: 10px 18px;
-        box-shadow: 0 10px 20px rgba(2,6,23,.18);
-        transition: transform .15s ease, box-shadow .15s ease;
+
+            .form-control:focus {
+                    border-color: var(--primary-color);
+                    outline: 0;
+                    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+
     }
 
-        .neo-btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 28px rgba(2,6,23,.20);
-        }
 
-    .neo-btn-secondary {
-        background: rgba(2,6,23,.06);
-        color: #0f172a;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        padding: 8px 16px;
-        transition: background .15s ease, transform .1s ease;
+
+        .small-text {
+                font-size: 0.875em;
+
     }
 
-        .neo-btn-secondary:hover {
-            background: rgba(2,6,23,.10);
-            transform: translateY(-1px);
-        }
 
-    .text-danger.small {
-        font-size: .85rem;
+
+        .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.75rem;
+                margin-top: 2rem;
+                padding-top: 1.5rem;
+                border-top: 1px solid var(--border-color);
+
     }
+
+
+
+        .btn-secondary-custom {
+                background-color: #f8f9fa;
+                color: #212529;
+                font-weight: 500;
+                border: 1px solid #dee2e6;
+                border-radius: var(--radius-sm);
+                padding: 10px 20px;
+                text-decoration: none;
+                transition: all .15s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+
+    }
+
+
+
+            .btn-secondary-custom:hover {
+                    background-color: #e9ecef;
+                    border-color: #ced4da;
+
+    }
+
+
+
+        .alert-danger {
+                color: #842029;
+                background-color: #f8d7da;
+                border-color: #f5c2c7;
+                padding: 1rem;
+                border: 1px solid transparent;
+                border-radius: var(--radius-sm);
+
+    }
+
 </style>

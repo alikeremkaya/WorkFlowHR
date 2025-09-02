@@ -13,13 +13,13 @@ namespace WorkFlowHR.Application.DTOs.LeaveDTOs
         public DateTime EndDate { get; set; }
         public Guid LeaveTypeId { get; set; }
 
-        // formdan ALMA — controller’da login’den set et
+       
         public Guid AppUserId { get; set; }
 
-        public Guid? ApproverAppUserId { get; set; } // opsiyonel
+        public Guid? ApproverAppUserId { get; set; } 
 
-        public Guid? ManagerAppUserId { get; set; }        // opsiyonel
-        public SelectList? Managers { get; set; }          // controller dolduracak
+        public Guid? ManagerAppUserId { get; set; }        
+        public SelectList? Managers { get; set; }         
         public Guid ManagerId { get; set; }
     }
 }

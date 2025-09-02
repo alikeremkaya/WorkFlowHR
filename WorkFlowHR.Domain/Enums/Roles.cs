@@ -7,7 +7,7 @@ namespace WorkFlowHR.Domain.Enums
        
 
         
-        Manager = 0, // Şirket Yöneticisi
+        Manager = 0, 
         Employee = 3
     }
 }

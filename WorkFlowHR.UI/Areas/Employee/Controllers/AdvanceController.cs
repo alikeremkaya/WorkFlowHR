@@ -6,7 +6,7 @@ using System.Security.Claims;
 using WorkFlowHR.Application.DTOs.AdvanceDTOs;
 using WorkFlowHR.Application.Services.AdvanceServices;
 using WorkFlowHR.Application.Services.AppUserServices;
-using WorkFlowHR.UI.Areas.Manager.Models.AdvanceVMs;
+using WorkFlowHR.UI.Areas.Employee.Models.AdvanceVMs;
 
 namespace WorkFlowHR.UI.Areas.Employee.Controllers
 {
@@ -97,7 +97,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var vm = res.Data.Adapt<AdvanceEditVM>();
+            var vm = res.Data.Adapt<AdvanceUpdateVM>();
             vm.ExistingImage = res.Data.Image;
             vm.Managers = await GetManagers(vm.ManagerId);
             return View(vm);
@@ -105,7 +105,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(AdvanceEditVM vm)
+        public async Task<IActionResult> Update(AdvanceUpdateVM vm)
         {
             if (!ModelState.IsValid)
             {
@@ -123,7 +123,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             }
             else
             {
-                dto.Image = vm.ExistingImage; // yeni yüklenmediyse eskisini koru
+                dto.Image = vm.ExistingImage; 
             }
 
             var res = await _advanceService.UpdateAsync(dto);
@@ -137,7 +137,28 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             TempData["Success"] = "Advance updated.";
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            try
+            {
+                var result = await _advanceService.DeleteAsync(id);
 
+                if (!result.IsSuccess)
+                {
+
+                    return Json(new { success = false, message = result.Messages });
+                }
+
+                return Json(new { success = true, message = result.Messages });
+            }
+            catch (Exception ex)
+            {
+
+                return Json(new { success = false, message = "An unexpected error occurred." });
+            }
+        }
 
         public async Task<IActionResult> ApproveAdvance(Guid id)
         {

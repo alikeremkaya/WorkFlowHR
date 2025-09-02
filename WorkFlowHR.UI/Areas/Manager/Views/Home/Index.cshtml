@@ -4,402 +4,378 @@
     ViewData["Title"] = "Manager Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Fallback'lar
-    var loginName = (ViewBag.LoginFirstName as string) ?? (User?.Identity?.Name ?? "Manager");
-    int employeesCount = ViewBag.EmployeesCount is int ec ? ec : 0;
-    int totalLeaves = ViewBag.TotalLeaves is int tl ? tl : 0;
-    int totalAdvances = ViewBag.TotalAdvances is int ta ? ta : 0;
+    var loginName = ViewBag.LoginFirstName as string ?? User?.Identity?.Name ?? "Manager";
+    int employeesCount = ViewBag.EmployeesCount ?? 0;
+    int totalLeaves = ViewBag.TotalLeaves ?? 0;
+    int totalAdvances = ViewBag.TotalAdvances ?? 0;
 
     var leaveCounts = ViewBag.LeaveCounts as IDictionary<string, int> ?? new Dictionary<string, int>();
     var advanceCounts = ViewBag.AdvanceCounts as IDictionary<string, int> ?? new Dictionary<string, int>();
     var expenseCounts = ViewBag.ExpenseCounts as IDictionary<string, int> ?? new Dictionary<string, int>();
 }
 
-<div class="container-fluid page-container py-4 px-4">
-    <!-- Üst şerit -->
-    <div class="neo-bar mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <div class="neo-bubble"></div>
-            <div>
-                <div class="neo-eyebrow">Dashboard</div>
-                <h2 class="mb-0">Welcome, <span class="highlight">@loginName</span> 👋</h2>
-            </div>
-        </div>
-        <div class="text-right">
-            <div id="clock" class="neo-clock">--:--</div>
-            <div id="today" class="neo-date">-- -- ----</div>
-        </div>
+<div class="page-head">
+    <div>
+        <h1 class="page-title">Welcome, @loginName 👋</h1>
+        <p class="page-subtitle">Here is a summary of your team's activities.</p>
     </div>
-
-    <!-- KPI Kartları -->
-    <div class="row grid-gutter g-rows mb-2">
-        <div class="col-12 col-lg-4">
-            <div class="neo-card kpi kpi-a">
-                <div class="kpi-label">Employee Count</div>
-                <div class="kpi-value">@employeesCount</div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-4">
-            <div class="neo-card kpi kpi-b">
-                <div class="kpi-label">Total Leave</div>
-                <div class="kpi-value">@totalLeaves</div>
-            </div>
-        </div>
-        <div class="col-12 col-lg-4">
-            <div class="neo-card kpi kpi-c">
-                <div class="kpi-label">Total Advance</div>
-                <div class="kpi-value">@totalAdvances</div>
-            </div>
-        </div>
+    <div class="text-right">
+        <div id="clock" class="page-clock">--:--</div>
+        <div id="today" class="page-date">-- -- ----</div>
     </div>
+</div>
 
-    <!-- 3 Grafik yan yana -->
-    <div class="row grid-gutter g-rows">
-        <div class="col-12 col-xl-4">
-            <div class="neo-card section-card">
-                <div class="neo-card-head">
-                    <h5>
-                        Leave Start Days
-                    </h5>
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card kpi-card">
+            <div class="card-body">
+                <div class="kpi-icon icon-employees">
+                    <i class="ti-user"></i>
                 </div>
-                <div class="neo-card-body">
-                    <canvas id="chartLeaves" height="220"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-xl-4">
-            <div class="neo-card section-card">
-                <div class="neo-card-head">
-                    <h5>
-                        Advance Days
-                    </h5>
-                </div>
-                <div class="neo-card-body">
-                    <canvas id="chartAdvances" height="220"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-xl-4">
-            <div class="neo-card section-card">
-                <div class="neo-card-head">
-                    <h5>Expense Days</h5>
-                </div>
-                <div class="neo-card-body">
-                    <canvas id="chartExpenses" height="220"></canvas>
+                <div class="kpi-details">
+                    <div class="kpi-value">@employeesCount</div>
+                    <div class="kpi-label">Active Employees</div>
                 </div>
             </div>
         </div>
     </div>
-
- 
-    <div class="row grid-gutter g-rows mt-2">
-        <div class="col-12">
-            <div class="neo-card section-card">
-                <div class="neo-card-head d-flex align-items-center justify-content-between">
-                    <h5>
-                        Manager Calendar
-                    </h5>
-                    <div class="muted">Forthcoming Dates</div>
+    <div class="col-md-4 mb-4">
+        <div class="card kpi-card">
+            <div class="card-body">
+                <div class="kpi-icon icon-leaves">
+                    <i class="ti-calendar"></i>
                 </div>
-                <div class="neo-card-body">
-                    <div id="managerCalendar" class="calendar"></div>
+                <div class="kpi-details">
+                    <div class="kpi-value">@totalLeaves</div>
+                    <div class="kpi-label">Pending Leaves</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card kpi-card">
+            <div class="card-body">
+                <div class="kpi-icon icon-advances">
+                    <i class="ti-credit-card"></i>
+                </div>
+                <div class="kpi-details">
+                    <div class="kpi-value">@totalAdvances</div>
+                    <div class="kpi-label">Pending Advances</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<div class="row">
+    <div class="col-xl-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Weekly Leave Requests</h4>
+                <div class="chart-container">
+                    <canvas id="chartLeaves"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Weekly Advance Requests</h4>
+                <div class="chart-container">
+                    <canvas id="chartAdvances"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-4 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Weekly Expense Requests</h4>
+                <div class="chart-container">
+                    <canvas id="chartExpenses"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Team Calendar</h4>
+                <div id="dashboard-calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section Styles {
-  
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.3/themes/base/jquery-ui.css">
-
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <style>
-        :root {
-            --v: #7c3aed;
-            --c: #06b6d4;
-            --c2: #22d3ee;
-            --ink: #0f172a;
-            --glass: rgba(255,255,255,.7);
-            --bd: rgba(2,6,23,.08);
-            --shadow: 0 12px 28px rgba(2,6,23,.15);
-            --r: 16px;
-        }
-
-        /* Sayfayı yatayda yay */
-        .page-container {
-            padding-left: clamp(16px, 2.2vw, 36px) !important;
-            padding-right: clamp(16px, 2.2vw, 36px) !important;
-        }
-
-        /* Kolonlar arası ekstra boşluk (Bootstrap'ten bağımsız) */
-        .grid-gutter {
-            margin-left: -14px;
-            margin-right: -14px;
-        }
-
-            .grid-gutter > [class*="col-"] {
-                padding-left: 14px;
-                padding-right: 14px;
-            }
-        /* Satırlar arası boşluk */
-        .g-rows {
-            row-gap: 22px;
-        }
-
-        .neo-bar {
-            border: 1px solid var(--bd);
-            border-radius: var(--r);
-            background: linear-gradient(90deg, rgba(124,58,237,.08), rgba(6,182,212,.08));
-            padding: 20px 20px;
+        .page-head {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: var(--shadow);
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 2rem;
         }
 
-        .neo-bubble {
-            width: 14px;
-            height: 14px;
-            border-radius: 999px;
-            background: linear-gradient(90deg,var(--v),var(--c));
-            box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+        .page-title {
+            font-weight: 600;
+            font-size: 1.75rem;
+            margin: 0;
         }
 
-        .neo-eyebrow {
-            font-weight: 700;
-            letter-spacing: .4px;
-            color: var(--ink);
-            opacity: .7;
-            font-size: .9rem;
+        .page-subtitle {
+            margin: 0.25rem 0 0;
+            color: var(--secondary-color);
         }
 
-        .highlight {
-            background: linear-gradient(90deg,var(--v),var(--c));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .neo-clock {
+        .page-clock {
             font-size: 1.7rem;
-            font-weight: 800;
+            font-weight: 700;
+            color: var(--text-color);
         }
 
-        .neo-date {
-            opacity: .8;
+        .page-date {
+            color: var(--secondary-color);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md, 8px);
+            box-shadow: none;
+            transition: all 0.2s ease-in-out;
+        }
+
+            .card:hover {
+                box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,.1), 0 2px 4px -2px rgba(0,0,0,.1));
+                transform: translateY(-2px);
+            }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+        }
+
+        .kpi-card .card-body {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .kpi-icon {
+            flex-shrink: 0;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            font-size: 1.6rem;
+        }
+
+            .kpi-icon.icon-employees {
+                background-color: #0d6efd;
+            }
+
+            .kpi-icon.icon-leaves {
+                background-color: #fd7e14;
+            }
+
+            .kpi-icon.icon-advances {
+                background-color: #198754;
+            }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .kpi-label {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* jQuery UI Calendar Theming */
+        #dashboard-calendar .ui-datepicker {
+            width: 100%;
+            border: none !important;
+            background: none !important;
+            padding: 0 !important;
+        }
+
+        #dashboard-calendar .ui-datepicker-header {
+            background: var(--bg-light) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: var(--radius-md, 8px) !important;
+        }
+
+        #dashboard-calendar .ui-datepicker-title {
             font-weight: 600;
         }
 
-        .neo-card {
-            background: var(--glass);
-            border: 1px solid var(--bd);
-            border-radius: var(--r);
-            box-shadow: var(--shadow);
+        #dashboard-calendar .ui-datepicker th {
+            font-weight: 500;
+            color: var(--secondary-color);
         }
 
-            .neo-card.section-card {
-                padding: 6px;
-            }
-        /* kart dışına hafif nefes */
-        .neo-card-head {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--bd);
-            background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
+        #dashboard-calendar .ui-state-default {
+            background: var(--bg-white) !important;
+            border: 1px solid var(--border-color) !important;
+            text-align: center !important;
+            font-weight: 500 !important;
+            color: var(--text-color) !important;
         }
 
-            .neo-card-head h5 {
-                margin: 0;
-                font-weight: 800;
-                color: var(--ink);
-            }
-
-        .neo-card-body {
-            padding: 16px;
+        #dashboard-calendar .ui-state-hover {
+            background: var(--bg-light) !important;
+            border-color: #adb5bd !important;
         }
 
-        /* KPI */
-        .kpi {
-            position: relative;
-            overflow: hidden;
-            min-height: 120px;
-            padding: 16px;
-        }
-
-            .kpi .kpi-label {
-                font-weight: 700;
-                opacity: .8;
-                margin-bottom: 6px;
-            }
-
-            .kpi .kpi-value {
-                font-size: 2.2rem;
-                font-weight: 900;
-            }
-
-            .kpi:before {
-                content: "";
-                position: absolute;
-                inset: auto -40px -40px auto;
-                width: 160px;
-                height: 160px;
-                border-radius: 50%;
-                filter: blur(40px);
-                opacity: .65;
-            }
-
-        .kpi-a:before {
-            background: radial-gradient(circle at center, rgba(124,58,237,.45), transparent 60%);
-        }
-
-        .kpi-b:before {
-            background: radial-gradient(circle at center, rgba(6,182,212,.45), transparent 60%);
-        }
-
-        .kpi-c:before {
-            background: radial-gradient(circle at center, rgba(34,211,238,.45), transparent 60%);
-        }
-
-        /* Takvim (jQuery UI inline) */
-        .calendar .ui-datepicker {
-            width: 100%;
-            max-width: 1100px;
-            margin: auto;
-            border: 1px solid var(--bd) !important;
-            border-radius: 12px;
-            padding: 6px 8px !important;
-            background: #fff !important;
-            box-shadow: var(--shadow);
-        }
-
-        .calendar .ui-datepicker-header {
-            border-radius: 10px;
-            border: 1px solid var(--bd);
-            background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10)) !important;
-        }
-
-        .calendar .ui-state-default {
-            border-radius: 8px !important;
-            border: 1px solid transparent !important;
-        }
-
-        .calendar .ui-state-active, .calendar .ui-state-hover {
-            border-color: rgba(124,58,237,.35) !important;
-            background: rgba(124,58,237,.08) !important;
-        }
-
-        /* Büyük ekranlarda kartlar ve grafikler genişlesin */
-        @@media (min-width:1400px) {
-            .page-container
-
-        {
-            padding-left: 48px !important;
-            padding-right: 48px !important;
-        }
-
-        .neo-card-body {
-            padding: 18px;
-        }
-
+        #dashboard-calendar .ui-state-highlight {
+            background: var(--primary-color) !important;
+            color: var(--bg-white) !important;
+            border-color: var(--primary-color) !important;
         }
     </style>
 }
 
 @section Scripts {
-    <!-- jQuery UI (Takvim) -->
-    <script src="https://code.jquery.com/ui/1.13.3/jquery-ui.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
     <script>
         // Saat & Tarih
         (function () {
-            const $clock = document.getElementById('clock');
-            const $today = document.getElementById('today');
-            const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            const clockEl = document.getElementById('clock');
+            const todayEl = document.getElementById('today');
+            if (!clockEl || !todayEl) return;
 
-            function tick() {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            function updateTime() {
                 const now = new Date();
                 const hh = String(now.getHours()).padStart(2, '0');
                 const mm = String(now.getMinutes()).padStart(2, '0');
-                $clock.textContent = `${hh}:${mm}`;
+                clockEl.textContent = `${hh}:${mm}`;
 
-                const dname = days[now.getDay()];
-                const d     = String(now.getDate()).padStart(2, '0');
-                const mname = months[now.getMonth()];
-                const y     = now.getFullYear();
-                $today.textContent = `${dname}, ${d} ${mname} ${y}`;
+                if (clockEl.dataset.dateSet !== 'true') {
+                    todayEl.textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+                    clockEl.dataset.dateSet = 'true';
+                }
             }
-            tick();
-            setInterval(tick, 1000);
+            updateTime();
+            setInterval(updateTime, 1000 * 30);
         })();
 
-        // Takvim (inline)
+        // Chart.js & Calendar Initialization
         $(function () {
-            $("#managerCalendar").datepicker({
-                showOtherMonths: true,
-                selectOtherMonths: true
-            });
-        });
+            // Calendar
+            $('#dashboard-calendar').datepicker();
 
-        // Chart verileri (Server -> JS)
-        const daysOfWeek = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+            // Chart Data
+            const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+            const leaveCounts = @Html.Raw(JsonConvert.SerializeObject(leaveCounts));
+            const advanceCounts = @Html.Raw(JsonConvert.SerializeObject(advanceCounts));
+            const expenseCounts = @Html.Raw(JsonConvert.SerializeObject(expenseCounts));
 
-        const leaveCounts   = @Html.Raw(JsonConvert.SerializeObject(leaveCounts));
-        const advanceCounts = @Html.Raw(JsonConvert.SerializeObject(advanceCounts));
-        const expenseCounts = @Html.Raw(JsonConvert.SerializeObject(expenseCounts));
+            const dataLeaves = daysOfWeek.map(d => leaveCounts[d.replace("Mon", "Monday").replace("Tue", "Tuesday").replace("Wed", "Wednesday").replace("Thu", "Thursday").replace("Fri", "Friday").replace("Sat", "Saturday").replace("Sun", "Sunday")] || 0);
+            const dataAdvances = daysOfWeek.map(d => advanceCounts[d.replace("Mon", "Monday").replace("Tue", "Tuesday").replace("Wed", "Wednesday").replace("Thu", "Thursday").replace("Fri", "Friday").replace("Sat", "Saturday").replace("Sun", "Sunday")] || 0);
+            const dataExpenses = daysOfWeek.map(d => expenseCounts[d.replace("Mon", "Monday").replace("Tue", "Tuesday").replace("Wed", "Wednesday").replace("Thu", "Thursday").replace("Fri", "Friday").replace("Sat", "Saturday").replace("Sun", "Sunday")] || 0);
 
-        const dataLeaves   = daysOfWeek.map(d => leaveCounts[d]   ?? 0);
-        const dataAdvances = daysOfWeek.map(d => advanceCounts[d] ?? 0);
-        const dataExpenses = daysOfWeek.map(d => expenseCounts[d] ?? 0);
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                },
+                plugins: { legend: { display: false } },
+                interaction: { intersect: false, mode: 'index' }
+            };
 
-        // Chart seçenekleri
-        const baseOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: { padding: { left: 6, right: 6, top: 6, bottom: 6 } },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, ticks: { stepSize: 1 } }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: { enabled: true }
+            // Leave Chart (Bar)
+            const ctxLeaves = document.getElementById('chartLeaves');
+            if (ctxLeaves) {
+                new Chart(ctxLeaves, {
+                    type: 'bar',
+                    data: {
+                        labels: daysOfWeek,
+                        datasets: [{
+                            label: 'Leave Requests',
+                            data: dataLeaves,
+                            backgroundColor: 'rgba(253, 126, 20, 0.7)',
+                            borderColor: 'rgba(253, 126, 20, 1)',
+                            borderRadius: 4,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: chartOptions
+                });
             }
-        };
 
-        // 1) Leaves (bar)
-        new Chart(document.getElementById('chartLeaves'), {
-            type: 'bar',
-            data: {
-                labels: daysOfWeek,
-                datasets: [{ data: dataLeaves }]
-            },
-            options: baseOptions
-        });
+            // Advance Chart (Line)
+            const ctxAdvances = document.getElementById('chartAdvances');
+            if (ctxAdvances) {
+                 const gradient = ctxAdvances.getContext('2d').createLinearGradient(0, 0, 0, 250);
+                 gradient.addColorStop(0, 'rgba(25, 135, 84, 0.5)');
+                 gradient.addColorStop(1, 'rgba(25, 135, 84, 0)');
+                new Chart(ctxAdvances, {
+                    type: 'line',
+                    data: {
+                        labels: daysOfWeek,
+                        datasets: [{
+                            label: 'Advance Requests',
+                            data: dataAdvances,
+                            fill: true,
+                            backgroundColor: gradient,
+                            borderColor: 'rgba(25, 135, 84, 1)',
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointBackgroundColor: 'rgba(25, 135, 84, 1)'
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
 
-        // 2) Advances (line)
-        new Chart(document.getElementById('chartAdvances'), {
-            type: 'line',
-            data: {
-                labels: daysOfWeek,
-                datasets: [{
-                    data: dataAdvances,
-                    fill: true,
-                    tension: 0.25
-                }]
-            },
-            options: baseOptions
-        });
-
-        // 3) Expenses (bar)
-        new Chart(document.getElementById('chartExpenses'), {
-            type: 'bar',
-            data: {
-                labels: daysOfWeek,
-                datasets: [{ data: dataExpenses }]
-            },
-            options: baseOptions
+            // Expense Chart (Bar)
+            const ctxExpenses = document.getElementById('chartExpenses');
+            if (ctxExpenses) {
+                new Chart(ctxExpenses, {
+                    type: 'bar',
+                    data: {
+                        labels: daysOfWeek,
+                        datasets: [{
+                            label: 'Expense Requests',
+                            data: dataExpenses,
+                            backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderRadius: 4,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: chartOptions
+                });
+            }
         });
     </script>
 }

@@ -1,40 +1,47 @@
 ﻿@model IEnumerable<WorkFlowHR.UI.Areas.Manager.Models.AdvanceVMs.AdvanceListVM>
-
 @using WorkFlowHR.Domain.Enums
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Advance Requests";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- DataTables CSS ve JS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/plug-ins/1.13.4/i18n/Turkish.json"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
 
-<br />
-<br />
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-<!-- Neo header -->
-<div class="neo-page-header">
-    <h1 class="neo-page-title">Advances</h1>
-    <a href="javascript:void(0);" class="btn neo-btn-gradient btn-create" onclick="openAdvanceCreateModal()">Add</a>
+<div class="page-head">
+    <h1 class="page-title">Advance Requests</h1>
+    <a href="javascript:void(0);" class="btn btn-primary-custom" onclick="openCreateModal()">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+        Create for Employee
+    </a>
 </div>
 
-<!-- Kart içinde tablo -->
-<div class="neo-card table-responsive">
-    <table id="advancesTable" class="table table-hover display nowrap neo-table" style="width:100%">
+<form id="__ajaxAntiForgeryForm" style="display:none">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="table-container">
+    <table id="advancesTable" class="display nowrap custom-table responsive" style="width:100%">
         <thead>
             <tr>
-                <th>Image</th>
-                <th>EmployeeName</th>
+                <th class="text-center">Photo</th>
+                <th>Employee Name</th>
                 <th>Amount</th>
-                <th>Roles</th>
-                <th>AdvanceDate</th>
-                <th>RequestStatus</th>
-                <th>Actions</th>
+                <th>Request Date</th>
+                <th>Request Status</th>
+                <th class="text-center">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -42,54 +49,55 @@
             {
                 <tr>
                     <td>
-                        <div class="image-container">
-                            @if (item.Image is null)
+                        <div class="image-cell">
+                            @if (item.Image is null || item.Image.Length == 0)
                             {
-                                <p class="image-placeholder">NoImagePleaseAdd</p>
+                                <div class="image-placeholder">No Photo</div>
                             }
                             else
                             {
-                                <img class="image-preview" src="@($"data:image/png;base64,{Convert.ToBase64String(item.Image)}")" onclick="openModal(this.src)" />
+                                var imageSrc = $"data:image/png;base64,{Convert.ToBase64String(item.Image)}";
+                                <img class="image-preview" src="@imageSrc" alt="employee photo" onclick="openImageModal('@imageSrc')" />
                             }
                         </div>
                     </td>
-                    <td>@Html.DisplayFor(modelItem => item.AppUserDisplayName)</td>
-                    <td>@Html.DisplayFor(modelItem => item.Amount)</td>
-                    <td>@Html.DisplayFor(modelItem => item.Roles)</td>
-                    <td>@Html.DisplayFor(modelItem => item.AdvanceDate)</td>
+                    <td>@item.AppUserDisplayName</td>
+                    <td>@($"{item.Amount:N2} ₺")</td>
+                    <td>@item.AdvanceDate.ToString("dd MMMM yyyy")</td>
                     <td>
                         @if (item.AdvanceStatus == AdvanceStatus.Pending)
                         {
-                            <span class="badge badge-warning">Pending</span>
+                            <span class="chip chip-pending">Pending</span>
                         }
                         else if (item.AdvanceStatus == AdvanceStatus.Approved)
                         {
-                            <span class="badge badge-success">Approved</span>
+                            <span class="chip chip-approved">Approved</span>
                         }
                         else if (item.AdvanceStatus == AdvanceStatus.Rejected)
                         {
-                            <span class="badge badge-danger">Rejected</span>
+                            <span class="chip chip-rejected">Rejected</span>
                         }
                     </td>
-                    <td>
-                        @if (item.AdvanceStatus == AdvanceStatus.Pending)
-                        {
-                            <div class="dropdown table-dropdown">
-                                <button class="btn btn-secondary dropdown-toggle table-dropdown-toggle" type="button" id="dropdownMenuButton@item.Id" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <span class="caret"></span>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-right table-dropdown-menu" aria-labelledby="dropdownMenuButton@item.Id">
-                                    <a class="dropdown-item dropdown-item-approve" href="@Url.Action("ApproveAdvance", new { id = item.Id })">Approve</a>
-                                    <a class="dropdown-item dropdown-item-reject" href="@Url.Action("RejectAdvance", new { id = item.Id })">Reject</a>
-                                    <a class="dropdown-item dropdown-item-update" href="javascript:void(0);" onclick="openAdvanceUpdateModal('@item.Id')">Update</a>
-                                    <a class="dropdown-item dropdown-item-delete" href="javascript:void(0);" data-id="@item.Id">Delete</a>
-                                </div>
-                            </div>
-                        }
-                        else if (item.AdvanceStatus == AdvanceStatus.Approved || item.AdvanceStatus == AdvanceStatus.Rejected)
-                        {
-                            @* Karar verilmiş kayıtlar için aksiyon göstermiyorsanız boş bırakın *@
-                        }
+                    <td class="text-center">
+                        <div class="dropdown">
+                            <button class="btn btn-sm dropdown-toggle action-dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                                    <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z" />
+                                </svg>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                @if (item.AdvanceStatus == AdvanceStatus.Pending)
+                                {
+                                    <li><button class="dropdown-item btn-approve" data-action="ApproveAdvance" data-id="@item.Id" data-title="Approve Request?" data-text="Are you sure you want to approve this advance request?" data-success="The request has been approved.">Approve</button></li>
+                                    <li><button class="dropdown-item btn-reject" data-action="RejectAdvance" data-id="@item.Id" data-title="Reject Request?" data-text="Are you sure you want to reject this advance request?" data-success="The request has been rejected.">Reject</button></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                }
+                                <li><a class="dropdown-item" href="javascript:void(0);" onclick="openUpdateModal('@item.Id')">Update</a></li>
+                                <li>
+                                    <button class="dropdown-item btn-delete-direct" data-action="Delete" data-id="@item.Id" data-title="Delete Request?" data-text="Once deleted, you will not be able to recover this request!" data-success="The request has been deleted.">Delete</button>
+                                </li>
+                            </ul>
+                        </div>
                     </td>
                 </tr>
             }
@@ -97,27 +105,30 @@
     </table>
 </div>
 
-<!-- Advance Create Modal -->
-<div id="advanceCreateModal" class="modal">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <span class="modal-close" onclick="closeAdvanceModal('advanceCreateModal')">&times;</span>
-        <div id="advanceCreateModalContent"></div>
+<div id="createModal" class="custom-modal-root" role="dialog" aria-modal="true">
+    <div class="custom-modal-card" onclick="event.stopPropagation()">
+        <button class="custom-close-button" onclick="closeModal('createModal')" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div id="createModalContent" class="p-4"></div>
     </div>
 </div>
 
-<!-- Advance Update Modal -->
-<div id="advanceUpdateModal" class="modal">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <span class="modal-close" onclick="closeAdvanceModal('advanceUpdateModal')">&times;</span>
-        <div id="advanceUpdateModalContent"></div>
+<div id="updateModal" class="custom-modal-root" role="dialog" aria-modal="true">
+    <div class="custom-modal-card" onclick="event.stopPropagation()">
+        <button class="custom-close-button" onclick="closeModal('updateModal')" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <div id="updateModalContent" class="p-4"></div>
     </div>
 </div>
 
-<!-- Image Modal -->
-<div id="imageModal" class="modal">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <span class="modal-close" onclick="closeModal('imageModal')">&times;</span>
-        <img id="modal-image">
+<div id="imageModal" class="custom-modal-root" role="dialog" aria-modal="true">
+    <div class="custom-modal-card image-zoom-card" onclick="event.stopPropagation()">
+        <button class="custom-close-button" onclick="closeModal('imageModal')" aria-label="Close">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <img id="modal-image" alt="Full-size photo" />
     </div>
 </div>
 
@@ -126,426 +137,468 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        $(document).ready(function () {
-            $('#advancesTable').DataTable({
-                "paging": true,
-                "ordering": true,
-                "info": true,
-                "searching": true,
-                language: {
-                    lengthMenu: "Göster _MENU_ kayıt",
-                    search: "Ara:",
-                    paginate: {
-                        next: "İleri",
-                        previous: "Geri"
-                    },
-                    info: "_START_ - _END_ arası gösteriliyor (toplam _TOTAL_ kayıt)",
-                    infoEmpty: "Tabloda veri yok",
-                    emptyTable: "Tabloda veri yok"
-                }
-            });
-        });
+        function getRequestVerificationToken() {
+            return $('#__ajaxAntiForgeryForm input[name="__RequestVerificationToken"]').val();
+        }
 
-        $('.btn-delete-direct, .dropdown-item-delete').click(function () {
-            var id = $(this).data('id');
+        function handleAjaxAction(actionName, id, confirmTitle, confirmText, successText) {
             swal({
-                title: "Silme Onayı",
-                text: "Bu kaydı silmek istediğinize emin misiniz?",
+                title: confirmTitle,
+                text: confirmText,
                 icon: "warning",
                 buttons: {
-                    cancel: {
-                        text: "Hayır",
-                        visible: true,
-                        className: "btn btn-secondary",
-                        closeModal: true
-                    },
-                    confirm: {
-                        text: "Evet",
-                        className: "btn btn-danger",
-                        closeModal: false
-                    }
-                }
+                    cancel: { text: "Cancel", visible: true, className: "btn btn-secondary", closeModal: true },
+                    confirm: { text: "Confirm", className: "btn btn-primary-custom", closeModal: false }
+                },
             }).then((isConfirm) => {
-                if (isConfirm) {
-                    $.ajax({
-                        url: '@Url.Action("Delete", "Advance", new { area = "Manager" })',
-                        type: 'POST',
-                        data: { id: id },
-                        success: function (response) {
-                            swal({
-                                title: "Silindi",
-                                text: "Kayıt başarıyla silindi.",
-                                icon: "success"
-                            }).then(() => {
-                                location.reload();
-                            });
-                        },
-                        error: function () {
-                            swal("Hata", "Silme işlemi başarısız oldu.", "error");
+                if (!isConfirm) return;
+                $.ajax({
+                    url: `@Url.Action(null, "Advance", new { area = "Manager" })/` + actionName,
+                    type: 'POST',
+                    data: { id: id },
+                    headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+                    success: function(response) {
+                        if (response.success) {
+                            swal("Success!", successText, "success").then(() => location.reload());
+                        } else {
+                            swal("Error!", response.message || "An unexpected error occurred.", "error");
                         }
-                    });
-                } else {
-                    swal.close();
-                }
-            });
-        });
-
-        $(document).ready(function () {
-            // Tüm tablo dropdown menüleri başta kapalı olarak ayarla
-            $('.table-dropdown-menu').hide();
-
-            // Tablo dropdown butonuna tıklama olayını yönet
-            $('.table-dropdown-toggle').click(function (e) {
-                e.stopPropagation();
-                var $dropdownMenu = $(this).siblings('.table-dropdown-menu');
-
-                if ($dropdownMenu.is(':visible')) {
-                    $dropdownMenu.hide();
-                } else {
-                    $('.table-dropdown-menu').hide(); // Diğer tüm menüleri kapat
-                    var offset = $(this).offset();
-                    var dropdownHeight = $dropdownMenu.outerHeight();
-                    var windowHeight = $(window).height();
-                    var spaceBelow = windowHeight - (offset.top + $(this).outerHeight());
-
-                    if (spaceBelow < dropdownHeight) {
-                        // Yeterli alan yoksa yukarı açılmasını sağla
-                        $dropdownMenu.css({
-                            top: offset.top - dropdownHeight,
-                            left: offset.left
-                        }).show();
-                    } else {
-                        // Yeterli alan varsa aşağı açılmasını sağla
-                        $dropdownMenu.css({
-                            top: offset.top + $(this).outerHeight(),
-                            left: offset.left
-                        }).show();
+                    },
+                    error: function() {
+                        swal("Error!", "An unexpected error occurred.", "error");
                     }
-                }
-            });
-
-            // Sayfa dışına tıklanırsa tüm menüleri kapat
-            $(document).click(function () {
-                $('.table-dropdown-menu').hide();
-            });
-        });
-
-        function openAdvanceCreateModal() {
-            $.ajax({
-                url: '@Url.Action("Create")',
-                type: 'GET',
-                success: function (result) {
-                    $('#advanceCreateModalContent').html(result);
-                    $('#advanceCreateModal').css('display', 'flex');
-                }
+                });
             });
         }
 
-        function openAdvanceUpdateModal(id) {
-            $.ajax({
-                url: '@Url.Action("Update")/' + id,
-                type: 'GET',
-                success: function (result) {
-                    $('#advanceUpdateModalContent').html(result);
-                    $('#advanceUpdateModal').css('display', 'flex');
-                }
-            });
-        }
-
-        function closeAdvanceModal(modalId) {
-            $('#' + modalId).css('display', 'none');
-        }
-
-        $(window).click(function (event) {
-            if ($(event.target).hasClass('modal')) {
-                $(event.target).fadeOut();
+        // Event Listener (Mevcut)
+        $(document).on('click', '.dropdown-item', function() {
+            var button = $(this);
+            var actionName = button.data('action');
+            if (actionName) {
+                var id = button.data('id');
+                var title = button.data('title');
+                var text = button.data('text');
+                var successMessage = button.data('success');
+                handleAjaxAction(actionName, id, title, text, successMessage);
             }
         });
 
-        function openModal(src) {
-            var modal = document.getElementById("imageModal");
-            var modalImage = document.getElementById("modal-image");
-            modal.style.display = "flex";
-            modalImage.src = src;
-        }
-
-        function closeModal(modalId) {
-            $('#' + modalId).css('display', 'none');
-        }
-
-        window.onclick = function (event) {
-            if (event.target.className === 'modal') {
-                event.target.style.display = "none";
+        // YENİ: Tekli takvimi başlatan fonksiyon
+        function initializeDatepicker() {
+            // Not: Bu fonksiyonun çalışması için partial view'daki input'un id'sinin 'AdvanceDate' olması gerekir.
+            let dateInput = document.querySelector("#AdvanceDate");
+            if (dateInput) {
+                flatpickr(dateInput, {
+                    dateFormat: "Y-m-d",      // Veritabanına gönderilecek format
+                    altInput: true,           // Kullanıcıya gösterilecek alternatif input
+                    altFormat: "d F Y",       // Kullanıcıya gösterilecek format (örn: 02 Eylül 2025)
+                    allowInput: true          // Manuel tarih girişine izin ver
+                });
             }
+        }
+
+        $(function() {
+            $('#advancesTable').DataTable({
+                paging: true, searching: true, ordering: true, responsive: true, order: [[3, 'desc']],
+                columnDefs: [{ targets: [0, -1], orderable: false, searchable: false }],
+                language: {
+                    lengthMenu: "Show _MENU_ entries", search: "_INPUT_", searchPlaceholder: "Search records...",
+                    paginate: { next: "Next", previous: "Previous" }, info: "Showing _START_ to _END_ of _TOTAL_ entries", infoEmpty: "No entries to show", emptyTable: "No data available"
+                }
+            });
+
+            // Modal Kapatma Mantığı (Mevcut)
+            $(document).on('click', '.custom-modal-root', function(e) {
+                if (e.target === e.currentTarget) $(this).fadeOut(200);
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') $('.custom-modal-root:visible').fadeOut(200);
+            });
+        });
+
+        // Modal Açma Fonksiyonları (Güncellendi ve Hata Düzeltildi)
+        function openCreateModal() {
+            $.get('@Url.Action("Create", "Advance", new { area = "Manager" })', function(html) {
+                $('#createModalContent').html(html);
+                $('#createModal').fadeIn(200).css('display', 'flex');
+                initializeDatepicker(); // Modal yüklendikten sonra takvimi başlat
+                $.validator.unobtrusive.parse('#createModalContent');
+            });
+        }
+
+        function openUpdateModal(id) {
+            const url = '@Url.Action("Update", "Advance", new { area = "Manager" })' + '?id=' + encodeURIComponent(id);
+            $.get(url, function(html) {
+                $('#updateModalContent').html(html); // **DÜZELTME**: Doğru content ID'si hedeflendi.
+                $('#updateModal').fadeIn(200).css('display', 'flex'); // **DÜZELTME**: Doğru modal ID'si hedeflendi.
+                initializeDatepicker(); // Modal yüklendikten sonra takvimi başlat
+                $.validator.unobtrusive.parse('#updateModalContent');
+            });
+        }
+
+        function openImageModal(src) {
+            $('#modal-image').attr('src', src);
+            $('#imageModal').fadeIn(200).css('display', 'flex');
+        }
+
+        function closeModal(id) {
+            $('#' + id).fadeOut(200);
         }
     </script>
 }
 
-<style>
-    /* Tema uyumlu başlık barı */
-    .neo-page-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .75rem;
-        padding: 18px 22px;
-        margin: 0 20px 18px 20px;
-        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
-        border: 1px solid rgba(2,6,23,.06);
-        border-radius: 14px;
-        box-shadow: 0 8px 22px rgba(2,6,23,.06)
-    }
-
-    .neo-page-title {
-        margin: 0;
-        font-weight: 700;
-        color: #0f172a;
-    }
-
-    /* Aksiyon butonu */
-    .neo-btn-gradient {
-        background: linear-gradient(90deg,#06b6d4,#22d3ee);
-        color: #fff !important;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: .2px;
-        box-shadow: 0 10px 20px rgba(2,6,23,.18);
-        transition: transform .15s ease, box-shadow .15s ease
-    }
-
-        .neo-btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 28px rgba(2,6,23,.20)
+@section Styles {
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --primary-hover: #0b5ed7;
+            --secondary-color: #6c757d;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --success-bg: #d1e7dd;
+            --success-text: #0f5132;
+            --warning-bg: #fff3cd;
+            --warning-text: #664d03;
+            --danger-bg: #f8d7da;
+            --danger-text: #842029;
+            --radius-sm: 6px;
+            --radius-md: 8px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
-    /* Kart */
-    .neo-card {
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(2,6,23,.10);
-        background: rgba(255,255,255,.9);
-        border: 1px solid rgba(2,6,23,.08);
-        margin: 0 20px;
-        padding: 10px 20px;
-    }
-
-    /* Tablo üst başlık gradient */
-    .neo-table thead th {
-        background: linear-gradient(90deg,#7c3aed,#06b6d4);
-        color: #fff;
-        border: none !important;
-    }
-
-    .neo-table tbody tr:hover {
-        background: rgba(124,58,237,.06)
-    }
-
-    body {
-        background: #F5F7FF;
-    }
-
-    .image-preview {
-        max-width: 100px;
-        max-height: 100px;
-        cursor: pointer;
-        border-radius: 10px;
-        box-shadow: 0 6px 14px rgba(2,6,23,.12);
-    }
-
-    .image-placeholder {
-        margin: 0;
-        color: #64748b;
-        font-size: .875rem
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1050;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal-content {
-        background-color: #fff;
-        margin: auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 12px;
-        position: relative;
-        box-shadow: 0 10px 28px rgba(2,6,23,.18);
-    }
-
-    .modal-close {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        color: #000;
-        font-size: 30px;
-        font-weight: bold;
-        transition: .2s;
-        cursor: pointer;
-    }
-
-        .modal-close:hover {
-            color: #999;
+        body {
+            background: var(--bg-light);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-    .btn {
-        border: none;
-        border-radius: 5px;
-        padding: 10px 15px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-
-    .btn-success {
-        background-color: #28a745;
-        color: white;
-    }
-
-    .btn-danger {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .btn-secondary {
-        color: #fff;
-        background-color: #6c757d;
-        border-color: #6c757d;
-    }
-
-    .badge {
-        font-size: 0.875em;
-        border-radius: 0.25rem;
-        padding: 0.5em;
-        color: white;
-    }
-
-    .badge-warning {
-        background-color: #EE7B11;
-    }
-
-    .badge-success {
-        background-color: #28a745;
-    }
-
-    .badge-danger {
-        background-color: #dc3545;
-    }
-
-    .dropdown-item:hover {
-        transition: background-color 0.2s ease-in-out;
-    }
-
-    .dropdown-item-approve:hover {
-        background-color: #28a745;
-        color: #fff;
-    }
-
-    .dropdown-item-reject:hover {
-        background-color: #dc3545;
-        color: #fff;
-    }
-
-    .dropdown-item-update:hover {
-        background-color: #7978E9;
-        color: #fff;
-    }
-
-    .dropdown-item-delete:hover {
-        background-color: #e67350;
-        color: #fff;
-    }
-
-    .btn-delete-direct {
-        background-color: #ff7f50;
-        color: white;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 999px;
-        cursor: pointer;
-        transition: background-color .3s ease;
-    }
-
-        .btn-delete-direct:hover {
-            background-color: #e67350;
+        .page-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 24px 28px;
         }
 
-    .dataTables_wrapper .dataTables_length {
-        margin: 20px 0 20px 20px;
-    }
-
-    .dataTables_wrapper .dataTables_filter {
-        float: right;
-        text-align: right;
-        padding-right: 20px;
-    }
-
-        .dataTables_wrapper .dataTables_length label,
-        .dataTables_wrapper .dataTables_filter label {
-            color: #7978E9;
-            font-weight: bold;
+        .page-title {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 1.75rem;
+            margin: 0;
         }
 
-        .dataTables_wrapper .dataTables_length select,
-        .dataTables_wrapper .dataTables_filter input {
-            color: #0f172a;
-            border: 1px solid rgba(2,6,23,.15);
-            border-radius: 10px;
-            padding: 5px;
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            color: #fff;
+            font-weight: 500;
+            border: 1px solid var(--primary-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 20px;
+            text-decoration: none;
+            transition: all .15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .dataTables_wrapper .dataTables_filter input {
-            width: 150px !important;
-            height: 30px !important;
-            padding: 5px;
-            font-size: 14px;
-            margin-top: 10px;
-            margin-right: 10px;
-            background-color: #f5f5f5;
-        }
-
-            .dataTables_wrapper .dataTables_filter input:focus {
-                background-color: #e0e0e0;
-                outline: none;
-                border-color: #7978E9;
+            .btn-primary-custom:hover {
+                background-color: var(--primary-hover);
+                border-color: var(--primary-hover);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-md);
             }
 
-    .dataTables_wrapper .dataTables_info {
-        margin-left: 20px;
-    }
+        .table-container {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            padding: 24px;
+            margin: 0 28px 28px;
+        }
 
-    .dropdown-menu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        transform: translate(0, 0);
-        z-index: 1000;
-        display: none;
-        background-color: #fff;
-        min-width: 10rem;
-        padding: .5rem 0;
-        margin: .125rem 0 0;
-        font-size: 1rem;
-        color: #212529;
-        text-align: left;
-        list-style: none;
-        background-clip: padding-box;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        border-radius: .25rem;
-        max-height: 300px;
-        overflow: auto;
-        box-shadow: 0 10px 24px rgba(2,6,23,.12);
-    }
-</style>
+        table.custom-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            table.custom-table thead th {
+                background-color: var(--bg-light);
+                color: var(--secondary-color);
+                font-weight: 600;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                border: none;
+                padding: 12px 15px;
+                text-align: left;
+                border-bottom: 2px solid var(--border-color);
+            }
+
+            table.custom-table tbody td {
+                background: var(--bg-white);
+                padding: 12px 15px;
+                border-bottom: 1px solid var(--border-color);
+                vertical-align: middle;
+                font-weight: 500;
+            }
+
+            table.custom-table tbody tr:last-child td {
+                border-bottom: none;
+            }
+
+            table.custom-table tbody tr:hover {
+                background-color: var(--bg-light);
+            }
+
+        .chip {
+            display: inline-block;
+            padding: .3rem .75rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .75rem;
+            line-height: 1;
+        }
+
+        .chip-pending {
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
+        }
+
+        .chip-approved {
+            background-color: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .chip-rejected {
+            background-color: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .action-dropdown-toggle {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--secondary-color);
+            padding: 0.25rem 0.5rem;
+        }
+
+            .action-dropdown-toggle:hover,
+            .action-dropdown-toggle:focus {
+                background-color: var(--bg-light);
+                color: var(--text-color);
+            }
+
+            .action-dropdown-toggle::after {
+                display: none;
+            }
+
+        .dropdown-menu {
+            --bs-dropdown-min-width: 160px;
+            --bs-dropdown-padding-y: 0.5rem;
+            --bs-dropdown-font-size: 0.9rem;
+            --bs-dropdown-border-radius: var(--radius-md, 8px);
+            --bs-dropdown-link-hover-bg: var(--bg-light);
+            box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, .1));
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .dropdown-item-approve {
+            color: var(--success-text) !important;
+        }
+
+            .dropdown-item-approve:hover {
+                background-color: var(--success-bg) !important;
+            }
+
+        .dropdown-item-reject,
+        .dropdown-item-delete {
+            color: var(--danger-text) !important;
+        }
+
+            .dropdown-item-reject:hover,
+            .dropdown-item-delete:hover {
+                background-color: var(--danger-bg) !important;
+            }
+
+        .dropdown-divider {
+            margin: 0.5rem 0;
+        }
+
+        .image-cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 60px;
+        }
+
+        .image-preview {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid var(--bg-white);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
+        }
+
+            .image-preview:hover {
+                transform: scale(1.1);
+            }
+
+        .image-placeholder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-light);
+            color: var(--secondary-color);
+            font-size: .7rem;
+            border: 1px dashed var(--border-color);
+        }
+
+        .custom-modal-root {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+            background: rgba(33, 37, 41, 0.6);
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .custom-modal-card {
+            width: min(560px, 92vw);
+            background: var(--bg-white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            animation: modal-pop .2s ease-out;
+        }
+
+        @@keyframes modal-pop {
+            from {
+                transform: scale(.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .custom-close-button {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--secondary-color);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .15s ease;
+            z-index: 10;
+        }
+
+            .custom-close-button:hover {
+                background-color: var(--bg-light);
+            }
+
+        .image-zoom-card {
+            width: auto;
+            max-width: 90vw;
+            max-height: 90vh;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+            overflow: hidden;
+        }
+
+            .image-zoom-card img {
+                display: block;
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: var(--radius-md);
+                box-shadow: var(--shadow-md);
+            }
+
+            .image-zoom-card .custom-close-button {
+                background-color: rgba(0, 0, 0, 0.4);
+                color: white;
+            }
+
+                .image-zoom-card .custom-close-button:hover {
+                    background-color: rgba(0, 0, 0, 0.6);
+                }
+
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+            .dataTables_wrapper .dataTables_length label,
+            .dataTables_wrapper .dataTables_filter label {
+                font-weight: 500;
+            }
+
+            .dataTables_wrapper .dataTables_length select,
+            .dataTables_wrapper .dataTables_filter input {
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-sm);
+                padding: 8px 12px;
+                margin-left: 8px;
+                transition: all .15s ease;
+            }
+
+                .dataTables_wrapper .dataTables_length select:focus,
+                .dataTables_wrapper .dataTables_filter input:focus {
+                    border-color: var(--primary-color);
+                    outline: 0;
+                    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+                }
+
+        .dataTables_wrapper .dataTables_filter {
+            text-align: right;
+        }
+
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            border-radius: 50% !important;
+            margin: 0 2px !important;
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+            .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                background: var(--primary-color) !important;
+                color: white !important;
+                border-color: var(--primary-color) !important;
+            }
+
+        .dataTables_wrapper .dataTables_info {
+            padding-top: .85em;
+        }
+    </style>
+}

@@ -8,7 +8,7 @@ using WorkFlowHR.Application.DTOs.LeaveTypeDTOs;
 using WorkFlowHR.Application.Services.AppUserServices;
 using WorkFlowHR.Application.Services.LeaveServices;
 using WorkFlowHR.Application.Services.LeaveTypeServices;
-using WorkFlowHR.UI.Areas.Manager.Models.LeaveVMs;
+using WorkFlowHR.UI.Areas.Employee.Models.LeaveVMs;
 
 namespace WorkFlowHR.UI.Areas.Employee.Controllers
 {
@@ -35,7 +35,6 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             _logger = logger;
         }
 
-        // LIST
         public async Task<IActionResult> Index()
         {
             var result = await _leaveService.GetAllAsync();
@@ -49,21 +48,8 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             return View(leaveVMs);
         }
 
-        // DETAILS
-        public async Task<IActionResult> Details(Guid id)
-        {
-            var result = await _leaveService.GetByIdAsync(id);
-            if (!result.IsSuccess || result.Data == null)
-            {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
-            }
+       
 
-            var vm = result.Data.Adapt<LeaveDetailsVM>();
-            return View(vm);
-        }
-
-        // CREATE (GET)
         public async Task<IActionResult> Create()
         {
             var vm = new LeaveCreateVM
@@ -75,7 +61,6 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             return View(vm);
         }
 
-        // CREATE (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(LeaveCreateVM model)
@@ -87,7 +72,7 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             }
 
             var dto = model.Adapt<LeaveCreateDTO>();
-            dto.AppUserId = await ResolveCurrentAppUserIdAsync(); // login’den set
+            dto.AppUserId = await ResolveCurrentAppUserIdAsync(); 
 
             var result = await _leaveService.CreateAsync(dto);
             if (!result.IsSuccess)
@@ -102,20 +87,18 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
         }
 
         // DELETE
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _leaveService.DeleteAsync(id);
-            if (!result.IsSuccess)
+            if (result.IsSuccess)
             {
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
+                return Json(new { success = true });
             }
-
-            await Console.Out.WriteLineAsync(result.Messages);
-            return RedirectToAction("Index");
+            return Json(new { success = false, message = result.Messages });
         }
 
-        // UPDATE (GET)
         public async Task<IActionResult> Update(Guid id)
         {
             var result = await _leaveService.GetByIdAsync(id);
@@ -125,16 +108,15 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
                 return RedirectToAction("Index");
             }
 
-            var vm = result.Data.Adapt<LeaveEditVM>();
+            var vm = result.Data.Adapt<LeaveUpdateVM>();
             vm.LeaveTypes = await GetLeaveTypes(vm.LeaveTypeId);
             vm.Managers = await GetManagers(vm.ManagerId);
             return View(vm);
         }
 
-        // UPDATE (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Update(LeaveEditVM model)
+        public async Task<IActionResult> Update(LeaveUpdateVM model)
         {
             if (!ModelState.IsValid)
             {

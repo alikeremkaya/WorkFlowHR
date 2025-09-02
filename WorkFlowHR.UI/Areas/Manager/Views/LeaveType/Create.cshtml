@@ -1,184 +1,167 @@
 ﻿@model WorkFlowHR.UI.Areas.Manager.Models.LeaveTypeVMs.LeaveTypeCreateVM
 
 @{
-    ViewData["Title"] = "Create";
+    Layout = null;
 }
 
-<!-- Neo-styled modal body -->
-<div class="neo-form-card">
-    <div class="neo-form-header">
-        <div class="neo-dot"></div>
-        <div class="neo-dot"></div>
-        <div class="neo-dot"></div>
-        <span>Create Leave Type</span>
+<form id="leaveTypeCreateForm" asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <h2 class="form-title">Create New Leave Type</h2>
+    <p class="form-subtitle">Define a new type of leave that employees can request.</p>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+    <div class="form-group">
+        <label asp-for="Name" class="form-label">Type Name</label>
+        <input asp-for="Name" class="form-control" placeholder="e.g., Annual Leave, Sick Leave" required />
+        <span asp-validation-for="Name" class="text-danger small-text"></span>
     </div>
 
-    <form id="leaveTypeCreateForm" asp-action="Create" method="post" class="neo-form" >
-        @Html.AntiForgeryToken()
-
-        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label neo-label">Type</label>
-            <input asp-for="Name" class="form-control neo-input" required />
-            <span asp-validation-for="Name" class="text-danger small"></span>
-        </div>
-
-        <div class="mb-4">
-            <label asp-for="Description" class="form-label neo-label">Description</label>
-            <textarea asp-for="Description" class="form-control neo-input" rows="3" required></textarea>
-            <span asp-validation-for="Description" class="text-danger small"></span>
-        </div>
-
-        <div class="d-grid">
-            <button type="submit" class="btn neo-btn-gradient">Create</button>
-        </div>
-    </form>
-
-    <div class="text-center mt-3">
-        <a asp-action="Index" class="btn neo-btn-secondary">Back to List</a>
+    <div class="form-group">
+        <label asp-for="Description" class="form-label">Description</label>
+        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Briefly explain the purpose of this leave type." required></textarea>
+        <span asp-validation-for="Description" class="text-danger small-text"></span>
     </div>
-</div>
 
-@section Scripts {
-    @@await Html.RenderPartialAsync("_ValidationScriptsPartial")
-    <script>
-        (function () {
-            const $form = $('#leaveTypeCreateForm');
-            if (!$form.length || $form.data('bound')) return;
-            $form.data('bound', true);
+    <div class="form-actions">
+        <button type="button" class="btn btn-secondary-custom" onclick="closeModal('createModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary-custom">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+            Create Type
+        </button>
+    </div>
+</form>
 
-            if ($.fn && $.fn.validate) {
-                $form.validate({
-                    errorClass: 'text-danger',
-                    validClass: 'text-success',
-                    errorPlacement: function (error, element) { error.insertAfter(element); },
-                    messages: {
-                        Name: "Lütfen bu alanı doldurun.",
-                        Description: "Lütfen bu alanı doldurun."
-                    },
-                    submitHandler: function (form) {
-                        return submitLeaveType(form);
-                    }
-                });
+<script>
+    (function () {
+        const $form = $('#leaveTypeCreateForm');
+        if ($form.data('initialized')) return;
+        $form.data('initialized', true);
+
+        $form.on('submit', function (e) {
+            e.preventDefault();
+            const form = this;
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
             }
 
-            // Always bind submit (works even if validate isn't loaded)
-            $form.on('submit', function (e) {
-                if ($.fn && $.fn.validate) return; // validate will call submitHandler
-                e.preventDefault();
-                submitLeaveType(this);
+            const $submitButton = $(form).find('button[type="submit"]');
+            $submitButton.prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Create", "LeaveType", new { area = "Manager" })',
+                data: $(form).serialize(),
+                headers: { 'RequestVerificationToken': getRequestVerificationToken() },
+                success: function () {
+                    swal("Success!", "The new leave type has been created.", "success")
+                        .then(() => location.reload());
+                },
+                error: function (xhr) {
+                    $submitButton.prop('disabled', false).html('<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style="margin-right: 6px;"><path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path></svg> Create Type');
+                    let msg = "An error occurred. Please check the form values.";
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                       msg = Object.values(xhr.responseJSON.errors).join("\n");
+                    }
+                    swal("Error!", msg, "error");
+                }
             });
-
-            function submitLeaveType(form) {
-                $.ajax({
-                    type: $(form).attr('method'),
-                    url: $(form).attr('action'),
-                    data: $(form).serialize(),
-                    success: function (response) {
-                        if (response && response.success) {
-                            window.location.href = response.redirectUrl;
-                        } else if (response && response.errors) {
-                            $.each(response.errors, function (key, value) {
-                                var $err = $('[name="' + key + '"]').next('.text-danger');
-                                $err.text(value);
-                            });
-                        } else {
-                            // Fallback: full view returned
-                            location.reload();
-                        }
-                    },
-                    error: function () {
-                        alert("An unexpected error occurred.");
-                    }
-                });
-                return false;
-            }
-        })();
-    </script>
-}
+        });
+    })();
+</script>
 
 <style>
-    .neo-form-card {
-        background: rgba(255,255,255,.9);
-        border: 1px solid rgba(2,6,23,.08);
-        border-radius: 16px;
-        box-shadow: 0 12px 30px rgba(2,6,23,.12);
-        padding: 18px 16px 22px 16px;
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
     }
 
-    .neo-form-header {
+    .form-subtitle {
+        font-size: 1rem;
+        color: var(--secondary-color);
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 500;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.65rem 0.9rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: var(--text-color);
+        background-color: var(--bg-white);
+        border: 1px solid var(--border-color);
+        appearance: none;
+        border-radius: var(--radius-sm);
+        transition: all .15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+        }
+
+    textarea.form-control {
+        min-height: 80px;
+    }
+
+    .small-text {
+        font-size: 0.875em;
+    }
+
+    .form-actions {
         display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .btn-secondary-custom {
+        background-color: #f8f9fa;
+        color: #212529;
+        font-weight: 500;
+        border: 1px solid #dee2e6;
+        border-radius: var(--radius-sm);
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: all .15s ease;
+        display: inline-flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(6,182,212,.10));
-        border: 1px solid rgba(2,6,23,.06);
-        font-weight: 700;
-        color: #0f172a;
+        justify-content: center;
+        cursor: pointer;
     }
 
-    .neo-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: #7c3aed;
-        box-shadow: 0 0 0 3px rgba(124,58,237,.15) inset;
-    }
-
-    .neo-label {
-        font-weight: 600;
-        color: #0f172a;
-    }
-
-    .neo-input {
-        border-radius: 12px;
-        border: 1px solid rgba(2,6,23,.15);
-        background: rgba(255,255,255,.9);
-        transition: box-shadow .2s ease, border-color .2s ease, transform .08s ease;
-    }
-
-        .neo-input:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 .2rem rgba(124,58,237,.15);
-            transform: translateY(-1px);
+        .btn-secondary-custom:hover {
+            background-color: #e9ecef;
+            border-color: #ced4da;
         }
 
-    .neo-btn-gradient {
-        background: linear-gradient(90deg,#06b6d4,#22d3ee);
-        color: #fff !important;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        letter-spacing: .2px;
-        padding: 10px 18px;
-        box-shadow: 0 10px 20px rgba(2,6,23,.18);
-        transition: transform .15s ease, box-shadow .15s ease;
-    }
-
-        .neo-btn-gradient:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 28px rgba(2,6,23,.20);
-        }
-
-    .neo-btn-secondary {
-        background: rgba(2,6,23,.06);
-        color: #0f172a;
-        border: none;
-        border-radius: 999px;
-        font-weight: 600;
-        padding: 8px 16px;
-        transition: background .15s ease, transform .1s ease;
-    }
-
-        .neo-btn-secondary:hover {
-            background: rgba(2,6,23,.10);
-            transform: translateY(-1px);
-        }
-
-    .text-danger.small {
-        font-size: .85rem;
+    .alert-danger {
+        color: #842029;
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+        padding: 1rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
     }
 </style>

@@ -1,69 +1,168 @@
 ﻿@model WorkFlowHR.UI.Areas.Employee.Models.LeaveVMs.LeaveUpdateVM
 
 @{
-    ViewData["Title"] = "Update";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;
 }
 
-<h1>Update</h1>
+<style>
+    .form-header-custom {
+        padding-bottom: 0.75rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+    }
 
-<h4>LeaveUpdateVM</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Update">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Id" class="control-label"></label>
-                <input asp-for="Id" class="form-control" />
-                <span asp-validation-for="Id" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="StartDate" class="control-label"></label>
-                <input asp-for="StartDate" class="form-control" />
-                <span asp-validation-for="StartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EndDate" class="control-label"></label>
-                <input asp-for="EndDate" class="form-control" />
-                <span asp-validation-for="EndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LeaveTypeId" class="control-label"></label>
-                <input asp-for="LeaveTypeId" class="form-control" />
-                <span asp-validation-for="LeaveTypeId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ManagerId" class="control-label"></label>
-                <input asp-for="ManagerId" class="form-control" />
-                <span asp-validation-for="ManagerId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ManagerFirstName" class="control-label"></label>
-                <input asp-for="ManagerFirstName" class="form-control" />
-                <span asp-validation-for="ManagerFirstName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ManagerLastName" class="control-label"></label>
-                <input asp-for="ManagerLastName" class="form-control" />
-                <span asp-validation-for="ManagerLastName" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LeaveStatus" class="control-label"></label>
-                <input asp-for="LeaveStatus" class="form-control" />
-                <span asp-validation-for="LeaveStatus" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        .form-header-custom .h5 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--text-color, #212529);
+        }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: var(--text-color, #212529);
+    }
+
+    .form-control {
+        border-radius: var(--radius-sm, 6px);
+        border: 1px solid var(--border-color, #dee2e6);
+        padding: 0.6rem 0.75rem;
+        transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: var(--primary-color, #0d6efd);
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+        }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn-secondary-custom {
+        background-color: #f8f9fa;
+        color: #212529;
+        border: 1px solid #dee2e6;
+        padding: 10px 20px;
+        font-weight: 500;
+        border-radius: var(--radius-sm, 6px);
+        text-decoration: none;
+        transition: background-color .15s ease;
+    }
+
+        .btn-secondary-custom:hover {
+            background-color: #e9ecef;
+        }
+
+    .btn-primary-custom {
+        background-color: var(--primary-color, #0d6efd);
+        color: #fff;
+        font-weight: 500;
+        border: 1px solid var(--primary-color, #0d6efd);
+        border-radius: var(--radius-sm, 6px);
+        padding: 10px 20px;
+        text-decoration: none;
+        transition: background-color .15s ease;
+    }
+
+        .btn-primary-custom:hover {
+            background-color: var(--primary-hover, #0b5ed7);
+            border-color: var(--primary-hover, #0b5ed7);
+        }
+</style>
+
+<div class="form-header-custom">
+    <h5 class="h5">Update Leave Request</h5>
+</div>
+
+<form id="leaveUpdateForm" asp-action="Update" method="post" onsubmit="handleUpdateFormSubmit(event)">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="ManagerId" type="hidden" />
+    <input asp-for="LeaveStatus" type="hidden" />
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="StartDate" class="form-label">Start Date</label>
+            <input asp-for="StartDate" type="date" class="form-control" required />
+            <span asp-validation-for="StartDate" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label asp-for="EndDate" class="form-label">End Date</label>
+            <input asp-for="EndDate" type="date" class="form-control" required />
+            <span asp-validation-for="EndDate" class="text-danger small"></span>
+        </div>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div class="mb-3">
+        <label asp-for="LeaveTypeId" class="form-label">Leave Type</label>
+        <select asp-for="LeaveTypeId" asp-items="@Model.LeaveTypes" class="form-control" required>
+            <option value="">-- Select a leave type --</option>
+        </select>
+        <span asp-validation-for="LeaveTypeId" class="text-danger small"></span>
+    </div>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+    <div class="form-actions">
+        <button type="button" class="btn btn-secondary-custom" onclick="closeModal('createModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary-custom">Save Changes</button>
+    </div>
+</form>
+
+<script>
+    (function initLeaveUpdateForm() {
+        if (window.leaveUpdateFormInitialized) return;
+        window.leaveUpdateFormInitialized = true;
+
+        const today = new Date().toISOString().split('T')[0];
+        const startDateInput = document.getElementById('StartDate');
+        const endDateInput = document.getElementById('EndDate');
+
+        if (startDateInput) {
+            startDateInput.setAttribute('min', today);
+            startDateInput.addEventListener('change', () => {
+                if (endDateInput) {
+                    endDateInput.setAttribute('min', startDateInput.value);
+                }
+            });
+        }
+        if (endDateInput && (!startDateInput.value || endDateInput.value < startDateInput.value)) {
+             endDateInput.setAttribute('min', startDateInput.value || today);
+        }
+    })();
+
+    function handleUpdateFormSubmit(event) {
+        event.preventDefault(); 
+        const form = event.target;
+
+        if (!$(form).valid()) {
+            return;
+        }
+
+        $.ajax({
+            url: form.action,
+            type: form.method,
+            data: $(form).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    closeModal('createModal');
+                    swal("Success!", "Your leave request has been updated.", "success")
+                        .then(() => {
+                            location.reload(); 
+                        });
+                } else {
+                    let errorText = response.errors ? response.errors.join('\n') : "An error occurred while updating.";
+                    swal("Update Failed", errorText, "error");
+                }
+            },
+            error: function() {
+                swal("Error!", "An unexpected network error occurred. Please try again.", "error");
+            }
+        });
+    }
+</script>

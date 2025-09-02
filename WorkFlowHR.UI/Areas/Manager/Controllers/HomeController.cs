@@ -43,7 +43,7 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
         User.FindFirstValue("preferred_username") ??
         User.FindFirst("emails")?.Value ?? string.Empty;
 
-            // GivenName -> Identity.Name ilk kelime -> e-posta '@' öncesi -> "User"
+          
             string loginFirstName =
                 User.FindFirstValue(ClaimTypes.GivenName)
                 ?? (User.Identity?.Name?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault())
@@ -52,7 +52,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             ViewBag.LoginFirstName = loginFirstName;
             ViewBag.Email = email;
 
-            // Rol: claim varsa onu kullan, yoksa IsInRole fallback
             var roleFromClaim = User.FindFirstValue(ClaimTypes.Role);
             ViewBag.Role = !string.IsNullOrWhiteSpace(roleFromClaim)
                 ? roleFromClaim
@@ -62,7 +61,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
 
 
 
-            // 2) Çalışan sayısı (tüm sistemde Employee rolünde olanlar)
             var allUsersResult = await _appUserService.GetAllAsync();
             var employeesCount = 0;
             if (allUsersResult.IsSuccess && allUsersResult.Data is not null)
@@ -72,7 +70,6 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             }
             ViewBag.EmployeesCount = employeesCount;
 
-            // 3) Verileri çek (şirket filtresi YOK)
             var advancesResult = await _advanceService.GetAllAsync();
             var advanceVMs = advancesResult.IsSuccess && advancesResult.Data is not null
                 ? advancesResult.Data.Adapt<List<AdvanceListVM>>()
@@ -88,12 +85,10 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
                 ? expensesResult.Data.Adapt<List<ExpenseListVM>>()
                 : new List<ExpenseListVM>();
 
-            // 4) Gün bazlı sayımlar
             ViewBag.ExpenseCounts = BuildDayOfWeekCounts(expenseVMs.GroupBy(l => l.ExpenseDate.DayOfWeek));
             ViewBag.AdvanceCounts = BuildDayOfWeekCounts(advanceVMs.GroupBy(l => l.AdvanceDate.DayOfWeek));
             ViewBag.LeaveCounts = BuildDayOfWeekCounts(leaveVMs.GroupBy(l => l.StartDate.DayOfWeek));
 
-            // Kart metrikleri
             ViewBag.TotalLeaves = leaveVMs.Count;
             ViewBag.TotalAdvances = advanceVMs.Count;
 

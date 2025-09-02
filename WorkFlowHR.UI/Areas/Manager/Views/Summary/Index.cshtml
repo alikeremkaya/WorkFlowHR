@@ -1,158 +1,160 @@
 ﻿@model WorkFlowHR.UI.Areas.Manager.Models.SummaryVMs.SummaryViewModel
+@using WorkFlowHR.Domain.Enums
 
 @{
-    ViewData["Title"] = "Summary";
+    ViewData["Title"] = "Request Summary";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="neo-tabs-wrap">
-    <ul class="neo-tabs">
-        <li>
-            <a href="javascript:void(0);" class="neo-tab-back" title="Back" onclick="history.back()">
-                &#8592;
-            </a>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"></script>
+
+<div class="page-head">
+    <h1 class="page-title">All Requests Summary</h1>
+    <ul class="nav nav-tabs custom-tabs">
+        <li class="nav-item">
+            <a class="nav-link active" href="#" data-tab="advances">Advances</a>
         </li>
-        <li><a href="#" class="neo-tab-link active" data-tab="advances">Advances</a></li>
-        <li><a href="#" class="neo-tab-link" data-tab="expenses">Expenses</a></li>
-        <li><a href="#" class="neo-tab-link" data-tab="leaves">Leaves</a></li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-tab="expenses">Expenses</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-tab="leaves">Leaves</a>
+        </li>
     </ul>
 </div>
 
-<div id="contentArea">
-    <!-- ADVANCES -->
-    <div id="advances" class="tab-content">
-        <div class="neo-card table-responsive">
-            <table id="advancesTable" class="table table-hover align-middle" style="width:100%">
+
+<div>
+    <div id="advances" class="tab-content" style="display:none;">
+        <div class="table-container">
+            <table id="advancesTable" class="display nowrap custom-table responsive" style="width:100%">
                 <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Employee</th>
-                    <th>Amount</th>
-                    <th>Advance Date</th>
-                    <th>Status</th>
-                    <th>Roles</th>
-                    <th>Actions</th>
-                </tr>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Employee</th>
+                        <th>Amount</th>
+                        <th>Request Date</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var a in Model.Advances)
                     {
                         var statusText = a.AdvanceStatus.ToString();
                         var statusClass =
-                            statusText.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-approved" :
-                            statusText.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-rejected" :
-                            "status-pending";
-
-                            <tr>
-                                <td>
-                                @if (a.Image != null && a.Image.Length > 0)
-                                {
-                                                <img src="data:image/png;base64,@Convert.ToBase64String(a.Image)"
-                                                     class="neo-thumb"
-                                                     alt="Advance Image"
-                                                     data-full="data:image/png;base64,@Convert.ToBase64String(a.Image)" />
-                                }
-                                </td>
-                                <td>@a.AppUserDisplayName</td>
-                                <td>@a.Amount</td>
-                                <td>@a.AdvanceDate.ToShortDateString()</td>
-                                <td><span class="status-pill @statusClass">@statusText</span></td>
-                                <td>@a.Roles</td>
-                                <td>
-                                    <a href="@Url.Action("Details","Advance", new { id = a.Id, area = "Manager" })"
-                                       class="btn neo-btn-info btn-sm">Details</a>
-                                </td>
-                            </tr>
+                        statusText.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-pill-approved" :
+                        statusText.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-pill-rejected" :
+                        "status-pill-pending";
+                        <tr>
+                            <td>
+                                <div class="image-cell">
+                                    @if (a.Image != null && a.Image.Length > 0)
+                                    {
+                                        var src = $"data:image/png;base64,{Convert.ToBase64String(a.Image)}";
+                                        <img src="@src" class="image-preview" alt="Photo" data-bs-toggle="modal" data-bs-target="#imageZoomModal" data-bs-image-src="@src" />
+                                    }
+                                </div>
+                            </td>
+                            <td>@a.AppUserDisplayName</td>
+                            <td>@($"{a.Amount:N2} ₺")</td>
+                            <td>@a.AdvanceDate.ToShortDateString()</td>
+                            <td><span class="status-pill @statusClass">@statusText</span></td>
+                            <td>@a.Roles</td>
+                            <td>
+                                <a href="@Url.Action("Details","Advance", new { id = a.Id, area = "Manager" })" class="btn btn-sm btn-details">Details</a>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- EXPENSES -->
     <div id="expenses" class="tab-content" style="display:none;">
-        <div class="neo-card table-responsive">
-            <table id="expensesTable" class="table table-hover align-middle" style="width:100%">
+        <div class="table-container">
+            <table id="expensesTable" class="display nowrap custom-table responsive" style="width:100%">
                 <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>Employee</th>
-                    <th>Description</th>
-                    <th>Amount</th>
-                    <th>Role</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
+                    <tr>
+                        <th>Receipt</th>
+                        <th>Employee</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                        <th>Role</th>
+                        <th>Expense Date</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var e in Model.Expenses)
                     {
-                            <tr>
-                                <td>
-                                @if (e.Image != null && e.Image.Length > 0)
-                                {
-                                                <img src="data:image/png;base64,@Convert.ToBase64String(e.Image)"
-                                                     class="neo-thumb"
-                                                     alt="Expense Image"
-                                                     data-full="data:image/png;base64,@Convert.ToBase64String(e.Image)" />
-                                }
-                                </td>
-                                <td>@e.AppUserDisplayName</td>
-                                <td>
-                                    <span class="text-truncate-2"
-                                          data-bs-toggle="tooltip"
-                                          title="@e.Description">
-                                    @(e.Description?.Length > 60 ? e.Description.Substring(0, 60) + "…" : e.Description)
-                                    </span>
-                                </td>
-                                <td>@e.Amount</td>
-                                <td>@e.Roles</td>
-                                <td>@e.ExpenseDate.ToShortDateString()</td>
-                                <td>
-                                    <a href="@Url.Action("Details","Expense", new { id = e.Id, area = "Manager" })"
-                                       class="btn neo-btn-info btn-sm">Details</a>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td>
+                                <div class="image-cell">
+                                    @if (e.Image != null && e.Image.Length > 0)
+                                    {
+                                        var src = $"data:image/png;base64,{Convert.ToBase64String(e.Image)}";
+                                        <img src="@src" class="image-preview" alt="Receipt" data-bs-toggle="modal" data-bs-target="#imageZoomModal" data-bs-image-src="@src" />
+                                    }
+                                </div>
+                            </td>
+                            <td>@e.AppUserDisplayName</td>
+                            <td>
+                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="@e.Description">
+                                    @(e.Description?.Length > 40 ? e.Description.Substring(0, 40) + "…" : e.Description)
+                                </span>
+                            </td>
+                            <td>@($"{e.Amount:N2} ₺")</td>
+                            <td>@e.Roles</td>
+                            <td>@e.ExpenseDate.ToShortDateString()</td>
+                            <td>
+                                <a href="@Url.Action("Details","Expense", new { id = e.Id, area = "Manager" })" class="btn btn-sm btn-details">Details</a>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- LEAVES -->
     <div id="leaves" class="tab-content" style="display:none;">
-        <div class="neo-card table-responsive">
-            <table id="leavesTable" class="table table-hover align-middle" style="width:100%">
+        <div class="table-container">
+            <table id="leavesTable" class="display nowrap custom-table responsive" style="width:100%">
                 <thead>
-                <tr>
-                    <th>Employee</th>
-                    <th>Leave Type</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var l in Model.Leaves)
                     {
                         var lStatus = l.LeaveStatus.ToString();
                         var lClass =
-                            lStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-approved" :
-                            lStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-rejected" :
-                            "status-pending";
-
-                            <tr>
-                                <td>@l.AppUserDisplayName</td>
-                                <td>@l.LeaveTypeName</td>
-                                <td>@l.StartDate.ToShortDateString()</td>
-                                <td>@l.EndDate.ToShortDateString()</td>
-                                <td><span class="status-pill @lClass">@lStatus</span></td>
-                                <td>
-                                    <a href="@Url.Action("Details","Leave", new { id = l.Id, area = "Manager" })"
-                                       class="btn neo-btn-info btn-sm">Details</a>
-                                </td>
-                            </tr>
+                        lStatus.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "status-pill-approved" :
+                        lStatus.Equals("Rejected", StringComparison.OrdinalIgnoreCase) ? "status-pill-rejected" :
+                        "status-pill-pending";
+                        <tr>
+                            <td>@l.AppUserDisplayName</td>
+                            <td>@l.LeaveTypeName</td>
+                            <td>@l.StartDate.ToShortDateString()</td>
+                            <td>@l.EndDate.ToShortDateString()</td>
+                            <td><span class="status-pill @lClass">@lStatus</span></td>
+                            <td>
+                                <a href="@Url.Action("Details","Leave", new { id = l.Id, area = "Manager" })" class="btn btn-sm btn-details">Details</a>
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>
@@ -160,210 +162,201 @@
     </div>
 </div>
 
-<!-- Image Zoom Modal -->
-<div class="modal fade" id="imgZoomModal" tabindex="-1" aria-labelledby="imgZoomLabel" aria-hidden="true">
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-labelledby="imageZoomModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content neo-card">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageZoomModalLabel">Full Size Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <div class="modal-body text-center">
-                <img id="imgZoomTarget" src="" class="img-fluid rounded" alt="Image" />
+                <img id="modalZoomImage" src="" class="img-fluid rounded" alt="Full Size Image">
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-        <script>
-            (function () {
-                // Remember selected tab
-                const TAB_KEY = "summary_selected_tab";
+    <script>
+        (function () {
+            const TAB_KEY = "summary_selected_tab";
 
-                function selectTab(tabId) {
-                    // hide all
-                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-                    // show selected
-                    document.getElementById(tabId).style.display = 'block';
+            function selectTab(tabId, pushState = true) {
+                $('.tab-content').hide();
+                $('#' + tabId).show();
 
-                    // active state
-                    document.querySelectorAll('.neo-tab-link').forEach(a => a.classList.remove('active'));
-                    document.querySelector(`.neo-tab-link[data-tab="${tabId}"]`)?.classList.add('active');
+                $('.custom-tabs .nav-link').removeClass('active');
+                $(`.custom-tabs .nav-link[data-tab="${tabId}"]`).addClass('active');
 
-                    // init datatable lazily
-                    if (window.jQuery && $.fn.dataTable) {
-                        if (tabId === 'advances' && !$.fn.DataTable.isDataTable('#advancesTable')) initTable('#advancesTable');
-                        if (tabId === 'expenses' && !$.fn.DataTable.isDataTable('#expensesTable')) initTable('#expensesTable');
-                        if (tabId === 'leaves'   && !$.fn.DataTable.isDataTable('#leavesTable'))   initTable('#leavesTable');
+                if (window.jQuery && $.fn.dataTable) {
+                    if (tabId === 'advances' && !$.fn.DataTable.isDataTable('#advancesTable')) initTable('#advancesTable');
+                    if (tabId === 'expenses' && !$.fn.DataTable.isDataTable('#expensesTable')) initTable('#expensesTable');
+                    if (tabId === 'leaves' && !$.fn.DataTable.isDataTable('#leavesTable')) initTable('#leavesTable');
+                }
+
+                if (pushState) {
+                     localStorage.setItem(TAB_KEY, tabId);
+                }
+            }
+
+            function initTable(selector) {
+                $(selector).DataTable({
+                    paging: true,
+                    searching: true,
+                    ordering: true,
+                    responsive: true,
+                    order: [[3, 'desc']],
+                    columnDefs: [{ targets: [0, -1], orderable: false, searchable: false }],
+                    language: {
+                        lengthMenu: "Show _MENU_ entries",
+                        search: "_INPUT_",
+                        searchPlaceholder: "Search records...",
+                        paginate: { next: "Next", previous: "Previous" },
+                        info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                        infoEmpty: "No entries to show",
+                        emptyTable: "No data available"
                     }
-
-                    localStorage.setItem(TAB_KEY, tabId);
-                }
-
-                function initTable(sel) {
-                    $(sel).DataTable({
-                        pageLength: 10,
-                        ordering: true,
-                        responsive: true,
-                        language: {
-                            lengthMenu: "Show _MENU_",
-                            search: "Search:",
-                            paginate: { next: "Next", previous: "Prev" },
-                            info: "Showing _START_ to _END_ of _TOTAL_",
-                            infoEmpty: "No records",
-                            emptyTable: "No data available"
-                        }
-                    });
-                }
-
-                // Tab links
-                document.addEventListener('click', function (e) {
-                    const link = e.target.closest('.neo-tab-link');
-                    if (!link) return;
-                    e.preventDefault();
-                    const id = link.getAttribute('data-tab');
-                    selectTab(id);
+                }).on('draw.dt', function() {
+                    // Yeniden çizim sonrası tooltip'leri güncelle
+                    $('[data-bs-toggle="tooltip"]').tooltip('dispose').tooltip();
                 });
+                // Başlangıçta da tooltip'leri başlat
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            }
 
-                // Open image in modal
-                document.addEventListener('click', function (e) {
-                    const img = e.target.closest('.neo-thumb');
-                    if (!img) return;
-                    const full = img.getAttribute('data-full') || img.src;
-                    const t = document.getElementById('imgZoomTarget');
-                    t.src = full;
-                    const modal = new bootstrap.Modal(document.getElementById('imgZoomModal'));
-                    modal.show();
-                });
+            $('.custom-tabs').on('click', '.nav-link', function (e) {
+                e.preventDefault();
+                selectTab($(this).data('tab'));
+            });
 
-                // Tooltips (Bootstrap 5)
-                try {
-                    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
-                } catch (err) { /* ignore if bootstrap not present */ }
+            // Görüntü modalını açmak için olay dinleyici
+            $('#imageZoomModal').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget); // Modalı tetikleyen element
+                const imageSrc = button.data('bs-image-src'); // image-src data attribute'ından URL al
+                const modalImage = $(this).find('#modalZoomImage');
+                modalImage.attr('src', imageSrc);
+            });
 
-                // Initial tab (from localStorage or default)
-                const saved = localStorage.getItem(TAB_KEY) || 'advances';
-                selectTab(saved);
-            })();
-        </script>
+            const savedTab = localStorage.getItem(TAB_KEY) || 'advances';
+            selectTab(savedTab, false);
+        })();
+    </script>
 }
 
 @section Styles {
-        <style>
-            :root{
-                --brand-a:#7c3aed; /* violet */
-                --brand-b:#06b6d4; /* cyan   */
-                --brand-c:#22d3ee; /* cyan   */
-                --ink:#0f172a;
-                --glass: rgba(255,255,255,.08);
-                --shadow:0 12px 30px rgba(2,6,23,.12);
-                --radius:16px;
+    <style>
+        .custom-tabs {
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 0;
+        }
+
+            .custom-tabs .nav-item {
+                margin-bottom: -2px;
             }
 
-            body { background: #F5F7FF; }
-
-            /* Tabs */
-            .neo-tabs-wrap{
-                margin: 10px 0 16px 0;
-            }
-            .neo-tabs{
-                display:flex;
-                gap:8px;
-                list-style:none;
-                padding:0; margin:0;
-                border-bottom:2px solid #7978E9;
-            }
-            .neo-tabs li{display:flex;align-items:center}
-            .neo-tab-back{
-                display:inline-flex;align-items:center;justify-content:center;
-                width:38px;height:38px;border-radius:999px;
-                text-decoration:none;
-                background: linear-gradient(90deg,var(--brand-a),var(--brand-b),var(--brand-c));
-                color:#fff;font-weight:800;box-shadow:var(--shadow);
-                transition:transform .15s ease;
-            }
-            .neo-tab-back:hover{ transform: translateY(-1px); }
-
-            .neo-tab-link{
-                text-decoration:none;
-                padding:10px 16px;
-                border-radius:12px;
-                font-weight:700; letter-spacing:.2px;
-                color:#7978E9; border:2px solid transparent;
-                transition: all .2s ease;
-            }
-            .neo-tab-link:hover{
-                background:rgba(124,58,237,.08);
-            }
-            .neo-tab-link.active{
-                color:#fff; border-color:transparent;
-                background: linear-gradient(90deg,var(--brand-a),var(--brand-b),var(--brand-c));
-                box-shadow:var(--shadow);
+            .custom-tabs .nav-link {
+                border: none;
+                border-bottom: 2px solid transparent;
+                color: var(--secondary-color);
+                font-weight: 500;
+                padding: 0.75rem 1.25rem;
+                transition: all 0.2s ease;
             }
 
-            /* Card shell */
-            .neo-card{
-                border-radius: var(--radius);
-                border:1px solid rgba(2,6,23,.06);
-                background: #fff;
-                box-shadow: var(--shadow);
-                padding: 8px 10px;
-            }
+                .custom-tabs .nav-link:hover {
+                    color: var(--primary-hover);
+                }
 
-            /* Thumbs */
-            .neo-thumb{
-                width:44px;height:44px;object-fit:cover;
-                border-radius:10px;border:1px solid rgba(2,6,23,.08);
-                display:block;
-                cursor:pointer;
-                transition: transform .12s ease, box-shadow .12s ease;
-            }
-            .neo-thumb:hover{
+                .custom-tabs .nav-link.active {
+                    color: var(--primary-color);
+                    background-color: transparent;
+                    border-bottom-color: var(--primary-color);
+                    font-weight: 600;
+                }
+
+        .btn-details {
+            background-color: var(--bg-light);
+            color: var(--text-color);
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            transition: all 0.15s ease;
+            padding: .25rem .75rem;
+            border-radius: var(--radius-sm);
+        }
+
+            .btn-details:hover {
+                background-color: #e9ecef;
+                border-color: #adb5bd;
                 transform: translateY(-1px);
-                box-shadow: 0 8px 18px rgba(2,6,23,.14);
             }
 
-            /* Status pills */
-            .status-pill{
-                display:inline-block;padding:6px 10px;border-radius:999px;
-                color:#fff;font-weight:700;font-size:.82rem;
-                box-shadow:0 6px 16px rgba(2,6,23,.12);
-            }
-            .status-approved{ background:#22c55e; } /* green */
-            .status-rejected{ background:#ef4444; } /* red   */
-            .status-pending{  background:#f59e0b; } /* amber */
+        .status-pill {
+            display: inline-block;
+            padding: .25em .6em;
+            font-size: 75%;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: .25rem;
+        }
 
-            /* Buttons */
-            .neo-btn-info{
-                background: linear-gradient(90deg,var(--brand-b),var(--brand-c));
-                color:#fff;border:none;
-                border-radius:999px;font-weight:600;letter-spacing:.2px;
-                padding:6px 12px;
-                box-shadow:0 10px 20px rgba(2,6,23,.12);
-            }
-            .neo-btn-info:hover{
-                color:#fff;
-                transform: translateY(-1px);
-                box-shadow:0 14px 28px rgba(2,6,23,.16);
+        .status-pill-approved {
+            color: #0f5132;
+            background-color: #d1e7dd;
+        }
+
+        .status-pill-rejected {
+            color: #842029;
+            background-color: #f8d7da;
+        }
+
+        .status-pill-pending {
+            color: #664d03;
+            background-color: #fff3cd;
+        }
+
+        .image-cell .image-preview {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%; /* Yuvarlak hale getirir */
+            border: 2px solid var(--bg-white);
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+            .image-cell .image-preview:hover {
+                transform: scale(1.1);
             }
 
-            /* Tables */
-            .table thead th{
-                background-color:#7978E9;color:#fff;border-bottom:2px solid #7978E9;
-                vertical-align:middle;
-            }
-            .table td, .table th{ vertical-align:middle; }
+        /* Bootstrap Modal özelleştirmeleri */
+        #imageZoomModal .modal-content {
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+        }
 
-            /* Truncate helper */
-            .text-truncate-2{
-                display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-                overflow:hidden;
-                max-width:420px;
-            }
+        #imageZoomModal .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+        }
 
-            /* DataTables theming tweaks */
-            .dataTables_wrapper .dataTables_filter input{
-                border:1px solid #7978E9;border-radius:10px;padding:4px 8px; outline:none;
-            }
-            .dataTables_wrapper .dataTables_length select{
-                border:1px solid #7978E9;border-radius:10px;padding:2px 6px; outline:none;
-            }
-        </style>
+        #imageZoomModal .modal-title {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        #imageZoomModal .modal-body {
+            padding: 1.5rem;
+        }
+
+        #modalZoomImage {
+            max-height: 80vh; /* Ekran yüksekliğinin %80'ini geçmez */
+            width: auto;
+            display: block;
+            margin: auto;
+        }
+    </style>
 }

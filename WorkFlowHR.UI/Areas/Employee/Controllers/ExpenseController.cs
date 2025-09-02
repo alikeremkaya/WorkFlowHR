@@ -6,7 +6,7 @@ using System.Security.Claims;
 using WorkFlowHR.Application.DTOs.ExpenseDTOs;
 using WorkFlowHR.Application.Services.AppUserServices;
 using WorkFlowHR.Application.Services.ExpenseServices;
-using WorkFlowHR.UI.Areas.Manager.Models.ExpenseVMs;
+using WorkFlowHR.UI.Areas.Employee.Models.ExpenseVMs;
 using WorkFlowHR.UI.Extentions;
 
 namespace WorkFlowHR.UI.Areas.Employee.Controllers
@@ -127,26 +127,31 @@ namespace WorkFlowHR.UI.Areas.Employee.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(Guid id)
         {
-            if (ModelState.IsValid)
+            try
             {
                 var result = await _expenseService.DeleteAsync(id);
+
                 if (!result.IsSuccess)
                 {
-                    await Console.Out.WriteLineAsync(result.Messages);
-                    return RedirectToAction("Index");
+
+                    return Json(new { success = false, message = result.Messages });
                 }
 
-                await Console.Out.WriteLineAsync(result.Messages);
-                return RedirectToAction("Index");
+                return Json(new { success = true, message = result.Messages });
             }
-            return RedirectToAction("Index", "Home");
+            catch (Exception ex)
+            {
+
+                return Json(new { success = false, message = "An unexpected error occurred." });
+            }
         }
 
         private async Task<SelectList> GetManagers(Guid? selectedId = null)
         {
-            // Tüm AppUser’ları getir (rol filtrelemek istersen burada yaparsın)
             var res = await _userService.GetAllAsync();
             if (!res.IsSuccess || res.Data == null)
                 return new SelectList(Enumerable.Empty<SelectListItem>());

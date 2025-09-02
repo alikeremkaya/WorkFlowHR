@@ -14,19 +14,19 @@ namespace WorkFlowHR.UI.Extentions
     {
         public static IServiceCollection AddUIServices(this IServiceCollection services)
         {
-            // 1) Identity (Cookie + Token)
+           
             
 
-            // 2) Dil / yerelleştirme
+           
             services.AddLocalization(opts => opts.ResourcesPath = "Resources");
 
             services.AddControllersWithViews(opts =>
                      opts.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true)
-                    .AddMicrosoftIdentityUI()                                   // ↖ login / logout Razor Pages
+                    .AddMicrosoftIdentityUI()                                  
                     .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
                     .AddDataAnnotationsLocalization();
 
-            services.AddRazorPages(); // MicrosoftIdentity UI Razor Pages
+            services.AddRazorPages(); 
 
             services.Configure<RequestLocalizationOptions>(opts =>
             {
@@ -36,7 +36,7 @@ namespace WorkFlowHR.UI.Extentions
                 opts.SupportedCultures = cultures;
             });
 
-            // 3) FluentValidation (UI katmanı validator’ları bu assembly’deyse)
+           
             services.AddFluentValidationAutoValidation()
                     .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

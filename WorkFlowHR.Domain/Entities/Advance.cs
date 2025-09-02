@@ -13,7 +13,6 @@ namespace WorkFlowHR.Domain.Entities
         public byte[]? Image { get; set; }
         public AdvanceStatus AdvanceStatus { get; set; } = AdvanceStatus.Pending;
 
-        // Kaydı oluşturan kişi (zorunlu)
         public Guid AppUserId { get; set; }
         public virtual AppUser AppUser { get; set; } = null!;
        

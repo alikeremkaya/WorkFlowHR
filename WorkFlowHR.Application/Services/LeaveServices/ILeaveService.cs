@@ -44,5 +44,25 @@ namespace WorkFlowHR.Application.Services.LeaveServices
 
 
         Task<IResult> ApproveLeaveAsync(Guid id);
+
+        /// <summary>
+        /// Onay bekleyen tüm izin kayıtlarını getirir.
+        /// </summary>
+        Task<IDataResult<List<LeaveListDTO>>> GetPendingLeavesAsync();
+
+        /// <summary>
+        /// Onaylanmış tüm izin kayıtlarını getirir.
+        /// </summary>
+        Task<IDataResult<List<LeaveListDTO>>> GetApprovedLeavesAsync();
+
+        /// <summary>
+        /// Reddedilmiş tüm izin kayıtlarını getirir.
+        /// </summary>
+        Task<IDataResult<List<LeaveListDTO>>> GetRejectedLeavesAsync();
+
+        /// <summary>
+        /// Gelecekte başlayacak olan onaylanmış izinleri (yaklaşan izinleri) getirir.
+        /// </summary>
+        Task<IDataResult<List<LeaveListDTO>>> GetUpcomingLeavesAsync();
     }
 }

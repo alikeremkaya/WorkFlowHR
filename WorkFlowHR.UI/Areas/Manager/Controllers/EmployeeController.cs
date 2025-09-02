@@ -50,8 +50,8 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             var userRes = await _userService.GetByIdAsync(id);
             if (!userRes.IsSuccess || userRes.Data is null)
             {
-                TempData["Error"] = userRes.Messages ?? "User not found.";
-                return RedirectToAction(nameof(Index));
+                // AJAX çağrısına hata olarak NotFound() dönmek daha doğrudur.
+                return NotFound("User not found.");
             }
 
             var vm = new EmployeeUpdatePhotoVM
@@ -61,24 +61,32 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
                 Email = userRes.Data.Email,
                 ExistingImage = userRes.Data.Image
             };
-            return View(vm);
+
+            // Doğru kullanım: Sadece formu içeren partial view'ı döndürür.
+            return PartialView("UpdatePhoto", vm);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdatePhoto(EmployeeUpdatePhotoVM vm)
         {
+            // Model validasyon hataları için
+            if (!ModelState.IsValid)
+            {
+                // Hataları göstermek için formu PartialView olarak geri döndür
+                return PartialView(vm);
+            }
+
             if (vm.NewImage is null || vm.NewImage.Length == 0)
             {
                 ModelState.AddModelError(nameof(vm.NewImage), "Please choose an image.");
-                return View(vm);
+                return PartialView(vm);
             }
 
-           
             if (!vm.NewImage.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(nameof(vm.NewImage), "Invalid image type.");
-                return View(vm);
+                return PartialView(vm);
             }
 
             using var ms = new MemoryStream();
@@ -89,12 +97,11 @@ namespace WorkFlowHR.UI.Areas.Manager.Controllers
             if (!res.IsSuccess)
             {
                 ModelState.AddModelError(string.Empty, res.Messages);
-                return View(vm);
+                return PartialView(vm);
             }
 
             TempData["Success"] = "Photo updated.";
-            return RedirectToAction(nameof(Index));
+            return Json(new { success = true });
         }
-
     }
-}
+    }

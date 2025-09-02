@@ -31,14 +31,42 @@ namespace WorkFlowHR.Application.Services.LeaveServices
             _mailService = mailService;
             _appUserService = appUserService;
         }
+        public async Task<IDataResult<List<LeaveListDTO>>> GetPendingLeavesAsync()
+        {
+            var leaves = await _leaveRepository.GetAllAsync(x => x.LeaveStatus == LeaveStatus.Pending);
+            // Mapster'ın Adapt extension metodunu kullanıyoruz.
+            var leavesDto = leaves.Adapt<List<LeaveListDTO>>();
+            return new SuccessDataResult<List<LeaveListDTO>>(leavesDto, "Onay bekleyen izinler başarıyla getirildi.");
+        }
+
+        public async Task<IDataResult<List<LeaveListDTO>>> GetApprovedLeavesAsync()
+        {
+            var leaves = await _leaveRepository.GetAllAsync(x => x.LeaveStatus == LeaveStatus.Approved);
+            var leavesDto = leaves.Adapt<List<LeaveListDTO>>();
+            return new SuccessDataResult<List<LeaveListDTO>>(leavesDto, "Onaylanmış izinler başarıyla getirildi.");
+        }
+
+        public async Task<IDataResult<List<LeaveListDTO>>> GetRejectedLeavesAsync()
+        {
+            var leaves = await _leaveRepository.GetAllAsync(x => x.LeaveStatus == LeaveStatus.Rejected);
+            var leavesDto = leaves.Adapt<List<LeaveListDTO>>();
+            return new SuccessDataResult<List<LeaveListDTO>>(leavesDto, "Reddedilmiş izinler başarıyla getirildi.");
+        }
+
+        public async Task<IDataResult<List<LeaveListDTO>>> GetUpcomingLeavesAsync()
+        {
+            // Yaklaşan izinler: Onaylanmış ve başlangıç tarihi bugünden sonra olanlar.
+            var leaves = await _leaveRepository.GetAllAsync(x => x.LeaveStatus == LeaveStatus.Approved && x.StartDate > DateTime.Today);
+            var leavesDto = leaves.Adapt<List<LeaveListDTO>>();
+            return new SuccessDataResult<List<LeaveListDTO>>(leavesDto, "Yaklaşan izinler başarıyla getirildi.");
+        }
 
         public async Task<IDataResult<List<LeaveListDTO>>> GetAllAsync()
         {
-            var leaves = await _leaveRepository.GetAllAsync(); // gerekirse IncludeLeaveType vs. repo tarafında eklenebilir
+            var leaves = await _leaveRepository.GetAllAsync(); 
             if (leaves == null)
                 return new ErrorDataResult<List<LeaveListDTO>>("Listeleme başarısız");
 
-            // Basit adapt; LeaveType.Name gibi alanlar için Mapster config yapabilirsin
             var list = leaves.Adapt<List<LeaveListDTO>>();
             return new SuccessDataResult<List<LeaveListDTO>>(list, "Listeleme başarılı.");
         }
@@ -53,7 +81,6 @@ namespace WorkFlowHR.Application.Services.LeaveServices
                 await _leaveRepository.AddAsync(entity);
                 await _leaveRepository.SaveChangesAsync();
 
-                // İsteğe bağlı e-posta: talep sahibine bilgi
                 var creator = await _appUserService.GetByIdAsync(entity.AppUserId);
                 if (creator.IsSuccess && creator.Data != null && !string.IsNullOrEmpty(creator.Data.Email))
                 {
@@ -84,7 +111,6 @@ namespace WorkFlowHR.Application.Services.LeaveServices
             await _leaveRepository.DeleteAsync(entity);
             await _leaveRepository.SaveChangesAsync();
 
-            // İsteğe bağlı e-posta: talep sahibine bilgi
             if (entity.AppUser != null && !string.IsNullOrEmpty(entity.AppUser.Email))
             {
                 var mailDTO = new MailDTO

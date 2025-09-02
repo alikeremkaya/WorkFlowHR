@@ -22,7 +22,7 @@ namespace WorkFlowHR.Application.DTOs.ExpenseDTOs
 
         public string AppUserDisplayName { get; set; }
 
-        // Onaylayacak yönetici
+       
 
 
         public byte[]? Image { get; set; }

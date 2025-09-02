@@ -42,7 +42,6 @@ namespace WorkFlowHR.Application.Services.AdvanceServices
                 await _advanceRepository.AddAsync(newAdvance);
                 await _advanceRepository.SaveChangesAsync();
 
-                // Şirket bağlantısı kaldırıldı: sadece talebin bağlı olduğu manager'a mail gönder
                 var manager = await _appUserService.GetByIdAsync(newAdvance.AppUserId);
 
                 if (manager?.Data != null && !string.IsNullOrWhiteSpace(manager.Data.Email))
@@ -80,7 +79,6 @@ namespace WorkFlowHR.Application.Services.AdvanceServices
             await _advanceRepository.DeleteAsync(deletingAdvance);
             await _advanceRepository.SaveChangesAsync();
 
-            // Eğer silinen avans bir çalışana aitse ve manager bilgisi varsa
             if (deletingAdvance.AppUser != null && !string.IsNullOrEmpty(deletingAdvance.AppUser.Email) && deletingAdvance.AppUser.Role == Roles.Employee.ToString())
             {
                 var mailDTO = new MailDTO
@@ -110,7 +108,6 @@ namespace WorkFlowHR.Application.Services.AdvanceServices
             {
                 var advanceListDTO = advance.Adapt<AdvanceListDTO>();
 
-                // Manager rol bilgisi ve diğer gerekli bilgileri DTO'ya ekleyin
                
                
                
